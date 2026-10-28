@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#120a2a">
+<meta name="description" content="Haunted Quest — a 3D Halloween adventure for practising English embedded questions: listening, speaking, spelling and grammar.">
+<title>Haunted Quest — Embedded Questions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;600;700&family=Luckiest+Guy&display=swap" rel="stylesheet">
+<style>
+/*CSS*/
+</style>
+</head>
+<body>
+<div id="game"></div>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div class="hud-left">
+    <div class="hud-chip lvl" id="hudLevel">Level 1</div>
+    <div class="hud-chip"><span class="ic">⭐</span><b id="hudScore">0</b></div>
+    <div class="hud-chip"><span class="ic">🪙</span><b id="hudCoins">0</b></div>
+    <div class="hud-chip" id="hudLives"></div>
+  </div>
+  <div class="hud-center">
+    <div id="hudObjective">Help the lost ghosts</div>
+    <div id="hudProgress"></div>
+  </div>
+  <div class="hud-right">
+    <div class="gems"><span class="gem g1" title="Voice Crystal"></span><span class="gem g2" title="Spelling Crystal"></span><span class="gem g3" title="Grammar Crystal"></span></div>
+    <button class="icon-btn" id="btnRules" title="Magic rules">📖</button>
+    <button class="icon-btn" id="btnSound" title="Sound">🔊</button>
+    <button class="icon-btn" id="btnPause" title="Menu">⏸</button>
+  </div>
+</div>
+<div id="combo" class="hidden"></div>
+<div id="prompt" class="hidden"></div>
+<div id="boo" class="hidden"><div class="boo-face">👻</div><div class="boo-text" id="booText"></div></div>
+<div id="toast" class="hidden"></div>
+
+<!-- Touch controls -->
+<div id="touch" class="hidden">
+  <div id="joy"><div id="joyKnob"></div></div>
+  <button id="tJump">⤒<small>Jump</small></button>
+  <button id="tAct">✋<small>Talk</small></button>
+</div>
+
+<!-- Screens -->
+<div id="screen" class="overlay"></div>
+<div id="qwrap" class="overlay hidden"><div id="qpanel"></div></div>
+<div id="loading" class="overlay hidden"><div class="cauldron-load"><div class="bubble b1"></div><div class="bubble b2"></div><div class="bubble b3"></div><div class="pot"></div></div><p id="loadingText">Brewing questions...</p></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/*JS*/
+</script>
+</body>
+</html>

@@ -1,0 +1,2465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#120a2a">
+<meta name="description" content="Haunted Quest — a 3D Halloween adventure for practising English embedded questions: listening, speaking, spelling and grammar.">
+<title>Haunted Quest — Embedded Questions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;600;700&family=Luckiest+Guy&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#fff7e8; --muted:#cbb8ee; --bg1:#120a2a; --bg2:#22124a;
+  --gold:#ffc83d; --orange:#ff8a1f; --purple:#7b3fe4; --blue:#2f8cff; --green:#3fd27a; --red:#ff4d6d;
+  --panel:rgba(26,14,58,.94);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#0b0620;color:var(--ink);font-family:'Mali',system-ui,sans-serif;user-select:none;-webkit-user-select:none}
+#game{position:fixed;inset:0}
+#game canvas{display:block;touch-action:none}
+.hidden{display:none!important}
+button{font-family:inherit;cursor:pointer;border:none;color:inherit}
+input,textarea{font-family:inherit;user-select:text;-webkit-user-select:text}
+.title-font{font-family:'Luckiest Guy','Mali',cursive;letter-spacing:1px}
+
+/* HUD */
+#hud{position:fixed;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:flex-start;padding:10px 12px;pointer-events:none;gap:8px;z-index:5}
+.hud-left,.hud-right{display:flex;gap:6px;align-items:center;flex-wrap:wrap;pointer-events:auto}
+.hud-chip{background:rgba(20,10,45,.78);border:2px solid rgba(255,200,61,.55);border-radius:14px;padding:4px 10px;font-size:15px;display:flex;align-items:center;gap:5px;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+.hud-chip.lvl{font-family:'Luckiest Guy',cursive;color:var(--gold);letter-spacing:1px}
+.hud-chip b{font-size:17px}
+.hud-center{text-align:center;pointer-events:none;flex:1;min-width:0}
+#hudObjective{display:inline-block;background:rgba(20,10,45,.78);border-radius:14px;padding:4px 14px;font-size:14px;border:2px solid rgba(160,120,255,.5)}
+#hudProgress{margin-top:4px;font-size:13px;color:var(--muted)}
+.gems{display:flex;gap:4px;background:rgba(20,10,45,.78);padding:5px 8px;border-radius:14px;border:2px solid rgba(255,200,61,.55)}
+.gem{width:18px;height:24px;clip-path:polygon(50% 0,100% 35%,50% 100%,0 35%);background:#3a2d5c;opacity:.6}
+.gem.on.g1{background:linear-gradient(#bff6ff,#18c8ff);opacity:1;filter:drop-shadow(0 0 6px #4be1ff)}
+.gem.on.g2{background:linear-gradient(#f0d4ff,#a64dff);opacity:1}
+.gem.on.g3{background:linear-gradient(#ffe7b8,#ff8a1f);opacity:1}
+.icon-btn{width:38px;height:38px;border-radius:12px;background:rgba(20,10,45,.85);border:2px solid rgba(255,200,61,.55);font-size:18px}
+.icon-btn:active{transform:scale(.92)}
+
+#combo{position:fixed;top:22%;left:50%;transform:translateX(-50%);font-family:'Luckiest Guy',cursive;font-size:56px;color:var(--gold);text-shadow:0 0 18px #ff8a1f,0 4px 0 #6a2b00;z-index:30;pointer-events:none;animation:pop .9s ease-out forwards}
+@keyframes pop{0%{transform:translateX(-50%) scale(.3);opacity:0}25%{transform:translateX(-50%) scale(1.25);opacity:1}70%{transform:translateX(-50%) scale(1);opacity:1}100%{transform:translateX(-50%) translateY(-40px);opacity:0}}
+#prompt{position:fixed;bottom:110px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#ff8a1f,#ffc83d);color:#2b1300;font-weight:700;padding:10px 20px;border-radius:30px;box-shadow:0 0 20px rgba(255,170,40,.6);z-index:6;animation:bob 1.2s ease-in-out infinite;cursor:pointer;white-space:nowrap}
+@keyframes bob{50%{transform:translateX(-50%) translateY(-5px)}}
+#boo{position:fixed;left:12px;bottom:14px;display:flex;align-items:flex-end;gap:8px;z-index:7;max-width:min(440px,70vw);pointer-events:none}
+.boo-face{font-size:40px;filter:drop-shadow(0 0 10px #c8b6ff);animation:float 2s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-6px)}}
+.boo-text{background:#fff;color:#2a1650;border-radius:16px 16px 16px 4px;padding:9px 13px;font-size:15px;line-height:1.35;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+#toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:rgba(20,10,45,.92);border:2px solid var(--gold);padding:8px 18px;border-radius:14px;z-index:40;font-size:15px}
+
+/* touch */
+#touch{position:fixed;inset:0;pointer-events:none;z-index:4}
+#joy{position:absolute;left:28px;bottom:120px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.25);pointer-events:auto;touch-action:none}
+#joyKnob{position:absolute;left:35px;top:35px;width:50px;height:50px;border-radius:50%;background:rgba(255,200,61,.75)}
+#tJump,#tAct{position:absolute;pointer-events:auto;width:78px;height:78px;border-radius:50%;font-size:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;line-height:1}
+#tJump small,#tAct small{font-size:11px;margin-top:3px}
+#tJump{right:24px;bottom:120px;background:rgba(123,63,228,.8);border:3px solid #c8a8ff}
+#tAct{right:112px;bottom:70px;background:rgba(255,138,31,.85);border:3px solid #ffd59a}
+
+/* overlays */
+.overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:14px;overflow:auto}
+#screen{background:radial-gradient(ellipse at 50% 20%,rgba(60,30,120,.55),rgba(8,4,24,.9))}
+#screen.clear{background:none;pointer-events:none}
+#screen.clear>*{pointer-events:auto}
+.card{background:var(--panel);border-radius:22px;padding:22px;max-width:780px;width:100%;border:3px solid rgba(255,200,61,.6);box-shadow:0 10px 40px rgba(0,0,0,.6),inset 0 0 40px rgba(123,63,228,.25);position:relative;max-height:calc(100vh - 28px);overflow:auto}
+.card.blue{border-color:#46a6ff;box-shadow:0 10px 40px rgba(0,0,0,.6),inset 0 0 40px rgba(47,140,255,.3)}
+.card.purple{border-color:#b07bff}
+.card.orange{border-color:#ffab3d;box-shadow:0 10px 40px rgba(0,0,0,.6),inset 0 0 40px rgba(255,138,31,.25)}
+h1.logo{font-family:'Luckiest Guy',cursive;font-size:clamp(40px,8vw,74px);margin:0;line-height:.95;text-align:center;background:linear-gradient(#fff6b0,#ffc83d 45%,#ff8a1f);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #5a1f00) drop-shadow(0 0 20px rgba(255,140,30,.5))}
+.sub-logo{font-family:'Luckiest Guy',cursive;text-align:center;font-size:clamp(20px,4vw,34px);color:#d9ecff;text-shadow:0 3px 0 #1d3f9e;margin:4px 0 6px}
+.tagline{text-align:center;color:var(--muted);margin:0 0 14px}
+h2{font-family:'Luckiest Guy','Mali',cursive;letter-spacing:1px;margin:0 0 8px;color:var(--gold);font-size:28px}
+h3{margin:12px 0 6px;color:#ffd98a}
+p{line-height:1.5}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1}
+.field{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--muted)}
+.field input{background:#120a2a;border:2px solid #5b3fa6;border-radius:12px;padding:10px 12px;color:#fff;font-size:16px;outline:none}
+.field input:focus{border-color:var(--gold)}
+.btn{background:linear-gradient(#ffb547,#ff7a1a);color:#2b1300;font-weight:700;font-size:17px;padding:12px 20px;border-radius:14px;box-shadow:0 4px 0 #8a3a00,0 6px 16px rgba(0,0,0,.4);transition:transform .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #8a3a00}
+.btn.purple{background:linear-gradient(#b48bff,#7b3fe4);color:#fff;box-shadow:0 4px 0 #3d1a85,0 6px 16px rgba(0,0,0,.4)}
+.btn.blue{background:linear-gradient(#6fc1ff,#2f8cff);color:#fff;box-shadow:0 4px 0 #154a9e,0 6px 16px rgba(0,0,0,.4)}
+.btn.green{background:linear-gradient(#7af0a8,#26b866);color:#06301a;box-shadow:0 4px 0 #0f6b38,0 6px 16px rgba(0,0,0,.4)}
+.btn.ghost{background:rgba(255,255,255,.08);color:#fff;box-shadow:none;border:2px solid rgba(255,255,255,.25)}
+.btn.small{font-size:14px;padding:8px 12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.lvl-card{border-radius:16px;padding:12px;text-align:left;color:#fff;position:relative;min-height:118px;border:3px solid transparent}
+.lvl-card .ln{font-family:'Luckiest Guy',cursive;font-size:22px;color:var(--gold)}
+.lvl-card .lt{font-weight:700}
+.lvl-card .ld{font-size:13px;opacity:.85}
+.lvl-card .stars{position:absolute;right:10px;top:8px;font-size:15px}
+.lvl-card.l1{background:linear-gradient(160deg,#1c4fa8,#0d2456);border-color:#46a6ff}
+.lvl-card.l2{background:linear-gradient(160deg,#5a2aa8,#2a1060);border-color:#b07bff}
+.lvl-card.l3{background:linear-gradient(160deg,#a8561c,#4f1f08);border-color:#ffab3d}
+.lvl-card.locked{filter:grayscale(.8) brightness(.6)}
+.lvl-card.locked::after{content:'🔒';position:absolute;right:10px;bottom:8px;font-size:22px}
+.feature-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.feature{background:rgba(255,255,255,.06);border-radius:12px;padding:8px;font-size:12.5px;text-align:center}
+.feature b{display:block;font-size:20px}
+@media (max-width:640px){.menu-grid{grid-template-columns:1fr}.feature-row{grid-template-columns:repeat(2,1fr)}h2{font-size:23px}.card{padding:16px}}
+
+/* question panel */
+#qwrap{background:rgba(8,4,24,.55);backdrop-filter:blur(2px)}
+#qpanel{width:100%;max-width:760px}
+.q-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.q-npc{font-size:44px;filter:drop-shadow(0 0 10px rgba(200,180,255,.8))}
+.q-title{flex:1}
+.q-title small{color:var(--muted);display:block}
+.q-title b{font-size:19px}
+.q-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.badge{font-size:12px;border-radius:20px;padding:3px 10px;background:rgba(255,255,255,.1)}
+.badge.ai{background:linear-gradient(90deg,#7b3fe4,#2f8cff)}
+.q-say{background:#fff;color:#2a1650;border-radius:16px;padding:12px 14px;font-size:17px;margin:8px 0;position:relative}
+.q-say .en{font-size:20px;font-weight:700}
+.q-say .th{font-size:14px;color:#6b5a90}
+.q-instr{color:#ffe1a8;font-size:15px;margin:6px 0}
+.big-sentence{font-size:22px;font-weight:700;background:#0f0826;border:2px dashed #6c4cc4;border-radius:14px;padding:12px;text-align:center;margin:8px 0;line-height:1.6}
+.blank-input{font-size:22px;font-weight:700;width:9em;text-align:center;background:#fff;color:#2a1650;border:3px solid var(--gold);border-radius:10px;padding:2px 6px;outline:none}
+.type-input{width:100%;font-size:19px;padding:12px;border-radius:12px;border:3px solid #6c4cc4;background:#fff;color:#2a1650;outline:none}
+.type-input:focus{border-color:var(--gold)}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:52px;padding:8px;border-radius:14px}
+.tiles.answer{background:#0f0826;border:2px dashed #6c4cc4;margin:8px 0}
+.tile{background:linear-gradient(#8fd0ff,#2f8cff);color:#fff;font-weight:700;font-size:19px;padding:8px 14px;border-radius:10px;box-shadow:0 4px 0 #154a9e}
+.tile.used{opacity:.25;pointer-events:none}
+.tile.ans{background:linear-gradient(#ffd27a,#ff9a1f);color:#2b1300;box-shadow:0 4px 0 #8a3a00}
+.opts{display:grid;gap:9px;margin:10px 0}
+.opt{background:linear-gradient(#3e6fe0,#2a4eb3);color:#fff;padding:12px 16px;border-radius:14px;font-size:18px;font-weight:600;text-align:left;border:3px solid #6fa0ff;box-shadow:0 4px 0 #142a6e}
+.opt:active{transform:translateY(2px)}
+.opt.right{background:linear-gradient(#5be38f,#24a85a);border-color:#b7ffd2}
+.opt.wrong{background:linear-gradient(#ff7b8d,#c22a45);border-color:#ffc0ca;animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.q-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.feedback{margin-top:10px;border-radius:14px;padding:12px 14px;font-size:15.5px;line-height:1.5}
+.feedback.good{background:rgba(63,210,122,.15);border:2px solid var(--green)}
+.feedback.bad{background:rgba(255,77,109,.13);border:2px solid var(--red)}
+.feedback.info{background:rgba(47,140,255,.13);border:2px solid var(--blue)}
+.words{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}
+.w{padding:3px 8px;border-radius:8px;font-weight:700;font-size:16px}
+.w.ok{background:#1f7a46}
+.w.miss{background:#a3253b;text-decoration:line-through}
+.w.extra{background:#6b5a20}
+.meter{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.meter>div{background:rgba(255,255,255,.06);border-radius:12px;padding:10px}
+.meter .lbl{font-size:13px;color:var(--muted)}
+.meter .val{font-size:24px;font-weight:700}
+.bar{height:10px;background:#2b1d55;border-radius:6px;overflow:hidden;margin-top:4px}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,#ff4d6d,#ffc83d,#3fd27a)}
+.mic-btn{width:86px;height:86px;border-radius:50%;font-size:38px;background:radial-gradient(#ff8fa3,#e0244b);box-shadow:0 0 0 6px rgba(255,77,109,.25),0 6px 18px rgba(0,0,0,.5)}
+.mic-btn.rec{animation:pulse 1s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 16px rgba(255,77,109,.1),0 6px 18px rgba(0,0,0,.5)}}
+.live{min-height:28px;font-size:18px;color:#bff6ff;font-style:italic;text-align:center}
+.speak-zone{display:flex;align-items:center;gap:14px;justify-content:center;margin:10px 0;flex-wrap:wrap}
+.hint-line{font-size:13px;color:var(--muted)}
+kbd{background:#2b1d55;border-radius:6px;padding:1px 7px;border:1px solid #6c4cc4;font-family:inherit}
+.rule{background:rgba(255,255,255,.05);border-left:5px solid var(--gold);border-radius:10px;padding:10px 12px;margin:8px 0}
+.rule .ok{color:#7af0a8}.rule .no{color:#ff9aab;text-decoration:line-through}
+table.t{width:100%;border-collapse:collapse;font-size:13.5px}
+table.t th,table.t td{padding:6px;border-bottom:1px solid rgba(255,255,255,.1);text-align:left}
+table.t th{color:var(--gold)}
+.stars-big{font-size:48px;text-align:center;letter-spacing:6px}
+.shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.shop-item{background:rgba(255,255,255,.06);border-radius:14px;padding:10px;text-align:center;border:2px solid transparent}
+.shop-item.on{border-color:var(--gold)}
+.swatch{width:46px;height:46px;border-radius:50%;margin:4px auto;border:3px solid #fff}
+.cert{background:linear-gradient(135deg,#3a1d6e,#1a0d3a);border:4px double var(--gold);border-radius:18px;padding:18px;text-align:center}
+.close-x{position:absolute;right:12px;top:10px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.1);font-size:18px}
+
+/* loading */
+#loading{background:rgba(8,4,24,.8);flex-direction:column;z-index:50}
+.cauldron-load{position:relative;width:120px;height:110px}
+.pot{position:absolute;bottom:0;left:10px;width:100px;height:70px;background:#1b1530;border-radius:0 0 50px 50px;border-top:10px solid #7b3fe4;box-shadow:0 0 30px #a64dff}
+.bubble{position:absolute;width:16px;height:16px;border-radius:50%;background:#c79bff;bottom:60px;animation:rise 1.4s infinite ease-in}
+.b1{left:30px}.b2{left:56px;animation-delay:.45s}.b3{left:80px;animation-delay:.9s}
+@keyframes rise{0%{transform:translateY(0) scale(.6);opacity:1}100%{transform:translateY(-60px) scale(1.2);opacity:0}}
+#loadingText{font-size:18px;margin-top:14px}
+.q-title{padding-right:40px}
+@media (max-width:700px){
+  #hud{flex-wrap:wrap;padding:8px}
+  .hud-center{order:3;flex-basis:100%}
+  .hud-chip{font-size:13px;padding:3px 8px}
+  .icon-btn{width:34px;height:34px;font-size:16px}
+  #hudObjective{font-size:13px}
+  #prompt{bottom:210px;font-size:14px}
+  #boo{bottom:230px}
+  .q-npc{font-size:34px}
+}
+
+/* ===== Responsive: phones, tablets, desktop ===== */
+html,body{height:100%;height:100dvh;overscroll-behavior:none;touch-action:manipulation}
+button{touch-action:manipulation}
+#hud{padding-top:max(10px,env(safe-area-inset-top));padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+#boo{left:max(12px,env(safe-area-inset-left));bottom:max(14px,env(safe-area-inset-bottom))}
+#joy{left:max(28px,env(safe-area-inset-left))}
+#tJump{right:max(24px,env(safe-area-inset-right))}
+.overlay{padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
+.card{max-height:calc(100dvh - 28px)}
+.btn-row{flex:0 0 auto;align-items:center}
+.btn-row>.btn{flex:1 1 auto}
+.btn-row>#bChk,.btn-row>#tChk,.btn-row>#oChk{flex:0 0 auto;min-width:110px}
+.input-row{flex-wrap:nowrap}
+.input-row>input{flex:1;min-width:0}
+.input-row>.btn{flex:0 0 auto}
+.name-row .f-cls{max-width:130px}.name-row .f-no{max-width:100px}
+.ai-toggle{flex:1.4;font-size:14px;display:flex;gap:8px;align-items:center;cursor:pointer}
+.ai-toggle input{width:20px;height:20px;flex:0 0 auto}
+.menu-row>.btn{flex:1 1 160px}
+@media (hover:hover){.btn:hover,.opt:hover,.tile:hover{filter:brightness(1.08)}}
+/* tablets */
+@media (min-width:701px) and (max-width:1100px) and (pointer:coarse){
+  #joy{width:140px;height:140px;bottom:60px}#joyKnob{left:42px;top:42px;width:56px;height:56px}
+  #tJump{bottom:60px;width:90px;height:90px}#tAct{bottom:40px;right:130px;width:90px;height:90px}
+  #prompt{bottom:180px}#boo{bottom:max(200px,env(safe-area-inset-bottom))}
+  .opt{font-size:19px;padding:14px 18px}.tile{font-size:20px;padding:10px 16px}
+}
+/* phones (portrait) */
+@media (max-width:700px){
+  .name-row{flex-wrap:wrap}.name-row .field:first-child{flex-basis:100%}
+  .name-row .f-cls,.name-row .f-no{max-width:none}
+  .start-row{flex-direction:column;align-items:stretch!important}
+  .ai-toggle{justify-content:center}
+  .big-sentence{font-size:18px;padding:10px}.blank-input{font-size:18px;width:7em}
+  .q-say .en{font-size:17px}.q-say{font-size:15px}
+  .opt{font-size:16px;padding:11px 13px}.tile{font-size:17px;padding:7px 11px}
+  .mic-btn{width:72px;height:72px;font-size:32px}
+  .meter{grid-template-columns:1fr}
+  .stars-big{font-size:38px}
+  #boo{bottom:max(215px,env(safe-area-inset-bottom));max-width:80vw}
+}
+/* phones in landscape / short screens */
+@media (max-height:520px){
+  #hud{padding-top:max(6px,env(safe-area-inset-top))}
+  .hud-chip{font-size:12px;padding:2px 7px}.hud-chip b{font-size:14px}.icon-btn{width:32px;height:32px;font-size:15px}
+  #hudObjective{font-size:12px;padding:3px 10px}#hudProgress{font-size:11px}
+  #joy{width:96px;height:96px;bottom:max(16px,env(safe-area-inset-bottom))}#joyKnob{left:26px;top:26px;width:44px;height:44px}
+  #tJump{width:64px;height:64px;font-size:22px;bottom:max(86px,env(safe-area-inset-bottom))}
+  #tAct{width:64px;height:64px;font-size:22px;bottom:max(12px,env(safe-area-inset-bottom));right:max(24px,env(safe-area-inset-right))}
+  #prompt{bottom:max(16px,env(safe-area-inset-bottom));font-size:13px;padding:8px 14px}
+  #boo{bottom:auto;top:58px;max-width:45vw}.boo-face{font-size:28px}.boo-text{font-size:13px;padding:6px 10px}
+  .card{padding:12px 14px;border-radius:16px}
+  h1.logo{font-size:38px}.sub-logo{font-size:20px}.tagline{margin-bottom:6px;font-size:13px}
+  .feature-row{display:none}
+  .lvl-card{min-height:auto;padding:8px}
+  .big-sentence{margin:4px 0;padding:8px}.q-say{margin:4px 0;padding:8px 12px}
+  .mic-btn{width:60px;height:60px;font-size:26px}
+  h2{font-size:22px}
+}
+
+</style>
+</head>
+<body>
+<div id="game"></div>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div class="hud-left">
+    <div class="hud-chip lvl" id="hudLevel">Level 1</div>
+    <div class="hud-chip"><span class="ic">⭐</span><b id="hudScore">0</b></div>
+    <div class="hud-chip"><span class="ic">🪙</span><b id="hudCoins">0</b></div>
+    <div class="hud-chip" id="hudLives"></div>
+  </div>
+  <div class="hud-center">
+    <div id="hudObjective">Help the lost ghosts</div>
+    <div id="hudProgress"></div>
+  </div>
+  <div class="hud-right">
+    <div class="gems"><span class="gem g1" title="Voice Crystal"></span><span class="gem g2" title="Spelling Crystal"></span><span class="gem g3" title="Grammar Crystal"></span></div>
+    <button class="icon-btn" id="btnRules" title="Magic rules">📖</button>
+    <button class="icon-btn" id="btnSound" title="Sound">🔊</button>
+    <button class="icon-btn" id="btnPause" title="Menu">⏸</button>
+  </div>
+</div>
+<div id="combo" class="hidden"></div>
+<div id="prompt" class="hidden"></div>
+<div id="boo" class="hidden"><div class="boo-face">👻</div><div class="boo-text" id="booText"></div></div>
+<div id="toast" class="hidden"></div>
+
+<!-- Touch controls -->
+<div id="touch" class="hidden">
+  <div id="joy"><div id="joyKnob"></div></div>
+  <button id="tJump">⤒<small>Jump</small></button>
+  <button id="tAct">✋<small>Talk</small></button>
+</div>
+
+<!-- Screens -->
+<div id="screen" class="overlay"></div>
+<div id="qwrap" class="overlay hidden"><div id="qpanel"></div></div>
+<div id="loading" class="overlay hidden"><div class="cauldron-load"><div class="bubble b1"></div><div class="bubble b2"></div><div class="bubble b3"></div><div class="pot"></div></div><p id="loadingText">Brewing questions...</p></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+'use strict';
+/* =========================================================
+   UTILITIES
+   ========================================================= */
+const $ = s => document.querySelector(s);
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function withTimeout(p, ms) { return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]); }
+function lev(a, b) {
+  const m = a.length, n = b.length; if (!m) return n; if (!n) return m;
+  let prev = Array.from({ length: n + 1 }, (_, i) => i);
+  for (let i = 1; i <= m; i++) { const cur = [i]; for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = cur; }
+  return prev[n];
+}
+
+/* =========================================================
+   PLATFORM CAPABILITIES (Claude artifact runtime) — optional
+   ========================================================= */
+const _caps = {};
+function getCap(name) {
+  if (!(name in _caps)) {
+    try {
+      _caps[name] = (window.claude && typeof window.claude.use === 'function')
+        ? Promise.resolve(window.claude.use(name)).catch(() => null) : Promise.resolve(null);
+    } catch (e) { _caps[name] = Promise.resolve(null); }
+  }
+  return _caps[name];
+}
+
+/* =========================================================
+   SAVE DATA (local) + cloud sync
+   ========================================================= */
+const SAVE_KEY = 'haunted_quest_embedded_v1';
+function newSave() {
+  return {
+    name: '', cls: '', no: '', coins: 0,
+    unlocked: ['robe_purple', 'pet_cat'], outfit: 'robe_purple', pet: 'pet_cat',
+    levels: {}, maxLevel: 1, badges: [], allUnlocked: false,
+    stats: {
+      speak: { n: 0, accSum: 0, pronSum: 0, pronN: 0, pass: 0 },
+      listen: { c: 0, t: 0 }, spell: { c: 0, t: 0 }, gram: { c: 0, t: 0 },
+      err: { order: 0, ifw: 0, wh: 0, caps: 0, punct: 0, spell: 0 }
+    },
+    history: []
+  };
+}
+function loadSave() {
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (e) { }
+  const base = newSave();
+  if (!d) return base;
+  const s = Object.assign(base, d);
+  s.stats = Object.assign(newSave().stats, d.stats || {});
+  for (const k of ['speak', 'listen', 'spell', 'gram', 'err']) s.stats[k] = Object.assign(newSave().stats[k], (d.stats || {})[k] || {});
+  return s;
+}
+let SAVE = loadSave();
+function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE)); } catch (e) { } }
+
+function totalScore() { return Object.values(SAVE.levels).reduce((a, l) => a + (l.best || 0), 0); }
+function pct(c, t) { return t ? Math.round(100 * c / t) : 0; }
+function summaryObj() {
+  const st = SAVE.stats;
+  return {
+    name: SAVE.name, cls: SAVE.cls, no: SAVE.no, total: totalScore(), coins: SAVE.coins,
+    stars: Object.values(SAVE.levels).reduce((a, l) => a + (l.stars || 0), 0),
+    levels: SAVE.levels, badges: SAVE.badges,
+    speakAcc: st.speak.n ? Math.round(st.speak.accSum / st.speak.n) : 0,
+    pronEst: st.speak.pronN ? +(st.speak.pronSum / st.speak.pronN).toFixed(1) : null,
+    listening: pct(st.listen.c, st.listen.t), spelling: pct(st.spell.c, st.spell.t), grammar: pct(st.gram.c, st.gram.t),
+    err: st.err, updated: Date.now()
+  };
+}
+function resultText() {
+  const s = summaryObj();
+  const lv = n => { const l = SAVE.levels[n]; return l ? `${l.best} pts ${'★'.repeat(l.stars)}${'☆'.repeat(3 - l.stars)}` : 'not passed yet'; };
+  return [
+    `🎃 Haunted Quest — Embedded Questions`,
+    `Name: ${s.name || '-'}  Class: ${s.cls || '-'}  No.: ${s.no || '-'}`,
+    `Total score: ${s.total}  Stars: ${s.stars}/9`,
+    `Level 1 (Listening & Speaking): ${lv(1)}`,
+    `Level 2 (Spelling): ${lv(2)}`,
+    `Level 3 (Grammar): ${lv(3)}`,
+    `Spoken sentence accuracy: ${s.speakAcc}%` + (s.pronEst != null ? `  | Pronunciation (estimate): ${s.pronEst}/5` : ''),
+    `Listening (first try): ${s.listening}%  | Spelling: ${s.spelling}%  | Grammar: ${s.grammar}%`,
+    `Practice next: word order ${s.err.order}, if/whether ${s.err.ifw}, Wh-word ${s.err.wh}, capitals ${s.err.caps}, punctuation ${s.err.punct}, spelling ${s.err.spell}`,
+    `Badges: ${s.badges.join(', ') || '-'}`,
+    `Saved: ${new Date().toLocaleString('en-GB')}`
+  ].join('\n');
+}
+let cloudState = 'unknown';
+async function syncCloud() {
+  try {
+    const db = await getCap('db'); const user = await getCap('user');
+    if (!db || !user) { cloudState = 'off'; return false; }
+    const id = await user.id(); if (!id) { cloudState = 'off'; return false; }
+    await db.doc('scores/' + id).set(JSON.parse(JSON.stringify(summaryObj())));
+    cloudState = 'ok'; return true;
+  } catch (e) { cloudState = 'off'; return false; }
+}
+
+/* =========================================================
+   AUDIO — synth SFX + ambient music + TTS
+   ========================================================= */
+let AC = null, muted = false, musicTimer = null;
+function ac() {
+  if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { } }
+  if (AC && AC.state === 'suspended') AC.resume().catch(() => { });
+  return AC;
+}
+function tone(freq, dur, type = 'sine', vol = .12, slide = 0, delay = 0) {
+  const a = ac(); if (!a || muted) return;
+  const t = a.currentTime + delay, o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t);
+  if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq + slide), t + dur);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + .05);
+}
+const SFX = {
+  coin() { tone(988, .07, 'square', .05); tone(1319, .14, 'square', .05, 0, .06); },
+  jump() { tone(320, .18, 'triangle', .09, 280); },
+  correct() { [523, 659, 784, 1047].forEach((f, i) => tone(f, .2, 'triangle', .11, 0, i * .08)); },
+  wrong() { tone(240, .28, 'sawtooth', .06, -90); tone(180, .3, 'sawtooth', .05, -60, .12); },
+  hit() { tone(170, .3, 'square', .09, -110); },
+  gem() { [784, 988, 1175, 1568, 1976].forEach((f, i) => tone(f, .35, 'sine', .11, 0, i * .1)); },
+  door() { tone(80, .9, 'sawtooth', .06, 50); },
+  combo() { [659, 880, 1175, 1568].forEach((f, i) => tone(f, .12, 'square', .06, 0, i * .05)); },
+  boo() { tone(520, .6, 'sine', .07, -320); },
+  click() { tone(660, .05, 'square', .04); }
+};
+function startMusic() {
+  if (musicTimer) return;
+  const notes = [220, 261.6, 329.6, 311.1, 220, 261.6, 349.2, 329.6];
+  let i = 0;
+  musicTimer = setInterval(() => {
+    if (muted) return;
+    const f = notes[i % notes.length];
+    tone(f, 1.1, 'sine', .025); tone(f / 2, 1.6, 'triangle', .02);
+    if (i % 4 === 0) tone(f * 2, .4, 'sine', .012, 0, .3);
+    i++;
+  }, 600);
+}
+let _voices = [];
+function loadVoices() { try { _voices = speechSynthesis.getVoices(); } catch (e) { } }
+try { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; } catch (e) { }
+function enVoice() {
+  const en = _voices.filter(v => /^en(-|_)/i.test(v.lang));
+  return en.find(v => /en-US/i.test(v.lang) && /Google|Samantha|Aria|Jenny|Natural/i.test(v.name)) || en.find(v => /en-US/i.test(v.lang)) || en[0] || null;
+}
+function speak(text, opts = {}) {
+  return new Promise(res => {
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US'; u.rate = opts.rate || .92; u.pitch = opts.pitch || 1.0;
+      const v = enVoice(); if (v) u.voice = v;
+      u.onend = res; u.onerror = res;
+      speechSynthesis.speak(u);
+      setTimeout(res, 9000);
+    } catch (e) { res(); }
+  });
+}
+
+/* =========================================================
+   SPEECH RECOGNITION (Speech-to-Text)
+   ========================================================= */
+const SRClass = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+let micBlocked = false, currentRec = null;
+function listenOnce(onInterim) {
+  return new Promise((resolve, reject) => {
+    if (!SRClass) return reject('unsupported');
+    let r;
+    try { r = new SRClass(); } catch (e) { return reject('unsupported'); }
+    r.lang = 'en-US'; r.interimResults = true; r.maxAlternatives = 4; r.continuous = false;
+    let finals = [], err = null;
+    r.onresult = e => {
+      let txt = ''; finals = [];
+      for (let i = 0; i < e.results.length; i++) {
+        const res = e.results[i];
+        txt += res[0].transcript;
+        if (res.isFinal) finals.push(res);
+      }
+      onInterim && onInterim(txt);
+    };
+    r.onerror = e => { err = e.error || 'error'; };
+    r.onend = () => {
+      currentRec = null;
+      if (err && err !== 'no-speech' && err !== 'aborted') return reject(err);
+      if (!finals.length) return resolve(null);
+      // join finals; collect alternatives of the last/only segment
+      const text = finals.map(f => f[0].transcript).join(' ').trim();
+      const confs = finals.map(f => f[0].confidence).filter(c => typeof c === 'number' && c > 0);
+      const conf = confs.length ? confs.reduce((a, b) => a + b, 0) / confs.length : null;
+      const alts = finals.length === 1 ? Array.from(finals[0]).map(a => ({ text: a.transcript, conf: a.confidence })) : [{ text, conf }];
+      resolve({ text, conf, alts });
+    };
+    try { r.start(); currentRec = r; } catch (e) { reject('start-failed'); }
+  });
+}
+function stopListening() { try { currentRec && currentRec.stop(); } catch (e) { } }
+
+/* =========================================================
+   EMBEDDED-QUESTION CONTENT
+   d = direct question, e = embedded clause, yn = yes/no question
+   ========================================================= */
+const BANK = [
+  { d: "Where does the old witch live?", e: "where the old witch lives" },
+  { d: "Why is the little ghost crying?", e: "why the little ghost is crying" },
+  { d: "What time does the party start?", e: "what time the party starts" },
+  { d: "How did the black cat escape?", e: "how the black cat escaped" },
+  { d: "When will the moon rise?", e: "when the moon will rise" },
+  { d: "Where did she hide the pumpkin?", e: "where she hid the pumpkin" },
+  { d: "What is the witch cooking?", e: "what the witch is cooking" },
+  { d: "Why did he run away?", e: "why he ran away" },
+  { d: "Where is the secret door?", e: "where the secret door is" },
+  { d: "What does this spell mean?", e: "what this spell means" },
+  { d: "How old is the castle?", e: "how old the castle is" },
+  { d: "Which potion should she drink?", e: "which potion she should drink" },
+  { d: "Where can we find the key?", e: "where we can find the key" },
+  { d: "Who is that tall man?", e: "who that tall man is" },
+  { d: "What did the ghost say?", e: "what the ghost said" },
+  { d: "Why are the lights flickering?", e: "why the lights are flickering" },
+  { d: "How does the spell work?", e: "how the spell works" },
+  { d: "When did the bats arrive?", e: "when the bats arrived" },
+  { d: "Whose broom is this?", e: "whose broom this is" },
+  { d: "Where does he live?", e: "where he lives" },
+  { d: "Why is he crying?", e: "why he is crying" },
+  { d: "Where did she go?", e: "where she went" },
+  { d: "Is the ghost friendly?", e: "the ghost is friendly", yn: true },
+  { d: "Does the black cat like pumpkins?", e: "the black cat likes pumpkins", yn: true },
+  { d: "Did he pass the exam?", e: "he passed the exam", yn: true },
+  { d: "Is she coming to the party?", e: "she is coming to the party", yn: true },
+  { d: "Can the witch fly at night?", e: "the witch can fly at night", yn: true },
+  { d: "Will the door open?", e: "the door will open", yn: true },
+  { d: "Are the zombies awake?", e: "the zombies are awake", yn: true },
+  { d: "Did the bats leave the tower?", e: "the bats left the tower", yn: true },
+  { d: "Was the castle empty last night?", e: "the castle was empty last night", yn: true },
+  { d: "Do ghosts eat candy?", e: "ghosts eat candy", yn: true },
+  { d: "Is she coming?", e: "she is coming", yn: true }
+];
+const Q_FRAMES = ["Do you know", "Could you tell me", "Can you tell me", "Do you have any idea"];
+const S_FRAMES = ["I wonder", "I don't know", "I'm not sure", "I'd like to know", "Nobody knows"];
+const isQFrame = f => Q_FRAMES.includes(f);
+const WH_WORDS = ['where', 'why', 'what', 'when', 'how', 'who', 'which', 'whose'];
+
+const CONTR = { "don't": "do not", "doesn't": "does not", "didn't": "did not", "i'm": "i am", "i'd": "i would", "can't": "cannot", "won't": "will not", "isn't": "is not", "aren't": "are not", "it's": "it is", "what's": "what is", "where's": "where is", "who's": "who is", "he's": "he is", "she's": "she is", "that's": "that is", "there's": "there is", "wasn't": "was not", "haven't": "have not", "hasn't": "has not", "couldn't": "could not", "you're": "you are", "we're": "we are", "they're": "they are", "i've": "i have", "can not": "cannot" };
+function tokens(s) {
+  s = String(s || '').toLowerCase().replace(/[’‘`´]/g, "'").replace(/[^a-z0-9' ]+/g, ' ');
+  const out = [];
+  s.split(/\s+/).filter(Boolean).forEach(w => {
+    w = w.replace(/^'+|'+$/g, ''); if (!w) return;
+    const c = CONTR[w]; if (c) out.push(...c.split(' ')); else out.push(w);
+  });
+  return out;
+}
+const norm = s => tokens(s).join(' ');
+const canon = s => tokens(s).map(w => w === 'whether' ? 'if' : w).join(' ');
+const cap1 = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+function prepItem(it, src) {
+  const x = Object.assign({}, it);
+  x.src = src || 'bank';
+  x.e = x.e.replace(/[.?!]+\s*$/, '').trim();
+  const dl = x.d.replace(/\?\s*$/, '').trim();
+  x.dl = dl.charAt(0).toLowerCase() + dl.slice(1);
+  x.wh = x.yn ? null : x.e.split(' ')[0].toLowerCase();
+  x.wrong = x.yn ? 'if ' + x.dl : x.dl;
+  x.subj = !x.yn && canon(x.dl) === canon(x.e);
+  return x;
+}
+function embed(x, conj) { return x.yn ? (conj || 'if') + ' ' + x.e : x.e; }
+function sentence(x, frame, conj) { return frame + ' ' + embed(x, conj) + (isQFrame(frame) ? '?' : '.'); }
+function wrongSentence(x, frame) { return frame + ' ' + x.wrong + (isQFrame(frame) ? '?' : '.'); }
+function ruleFor(x) {
+  if (x.yn) return `Rule 3 🔮 A yes/no question (“${x.d}”) → use <b>if / whether</b> + subject + verb: “<b>${embed(x, 'if')}</b>” or “<b>${embed(x, 'whether')}</b>”`;
+  if (x.subj) return `Rule 2 🔮 Choose the Wh-word that matches the meaning: “${x.d}” → “<b>${x.wh}</b>”`;
+  return `Rule 1 🔮 After the Wh-word, use statement word order (subject + verb): “<b>${x.e}</b>” ✔ not “<s>${x.wrong}</s>” ✘`;
+}
+function punctRule(frame) {
+  return isQFrame(frame)
+    ? `The main sentence is a question (“${frame} …”), so it ends with <b>?</b>`
+    : `The main sentence is a statement (“${frame} …”), so it ends with <b>.</b> — not ?`;
+}
+
+/* diagnose a free answer (spoken or typed) — returns list of issues */
+function diagnose(answer, x, target) {
+  const a = canon(answer), t = canon(target);
+  const issues = [];
+  if (a === t) return { ok: true, issues };
+  const aw = a.split(' '), tw = t.split(' ');
+  if (!x.subj && a.includes(canon(x.dl))) issues.push('order');
+  else if (!x.subj && /\b(do|does|did)\b/.test(a) && !/\b(do|does|did)\b/.test(canon(x.e)) && a.replace(/^(do you know|do you have any idea)/, '').match(/\b(do|does|did)\b/)) issues.push('order');
+  if (x.yn && !/\b(if|whether)\b/.test(norm(answer))) issues.push('ifw');
+  if (!x.yn && x.wh && !aw.includes(x.wh)) issues.push('wh');
+  // spelling: target words not present that have a close neighbour
+  const misses = tw.filter(w => !aw.includes(w));
+  const extras = aw.filter(w => !tw.includes(w));
+  const spell = [];
+  misses.forEach(m => { const near = extras.find(e => lev(e, m) <= Math.max(1, Math.floor(m.length / 4)) && e !== m); if (near) spell.push([near, m]); });
+  if (spell.length && !issues.includes('order')) issues.push('spell');
+  if (!issues.length) issues.push('other');
+  return { ok: false, issues, spell, misses, extras };
+}
+const ISSUE_TEXT = {
+  order: '👻 Remember: <b>subject comes before the verb.</b> In an embedded question use subject + verb and drop do / does / did.',
+  ifw: '👻 This is a yes/no question — it needs <b>if</b> or <b>whether</b>.',
+  wh: '👻 Check your <b>Wh-word</b> — does it match what the original question asks?',
+  spell: '👻 A word is <b>misspelled</b>. Check the letters again.',
+  caps: '👻 Start the sentence with a <b>capital letter</b>.',
+  punct: '👻 Check the <b>end punctuation</b>: main sentence is a question → ? / a statement → .',
+  other: '👻 Not quite yet. Read or listen to the task again and try once more.'
+};
+
+/* word alignment (LCS) for spoken feedback */
+function alignWords(target, said) {
+  const t = tokens(target).map(w => w === 'whether' ? 'if' : w), s = tokens(said).map(w => w === 'whether' ? 'if' : w);
+  const tOrig = tokens(target);
+  const m = t.length, n = s.length, L = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = m - 1; i >= 0; i--) for (let j = n - 1; j >= 0; j--) L[i][j] = t[i] === s[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const out = []; let i = 0, j = 0;
+  while (i < m && j < n) {
+    if (t[i] === s[j]) { out.push({ w: tOrig[i], k: 'ok' }); i++; j++; }
+    else if (L[i + 1][j] >= L[i][j + 1]) { out.push({ w: tOrig[i], k: 'miss' }); i++; }
+    else { out.push({ w: s[j], k: 'extra' }); j++; }
+  }
+  while (i < m) out.push({ w: tOrig[i++], k: 'miss' });
+  while (j < n) out.push({ w: s[j++], k: 'extra' });
+  const matched = out.filter(o => o.k === 'ok').length, extra = out.filter(o => o.k === 'extra').length;
+  return { out, acc: m ? Math.round(100 * matched / (m + extra)) : 0, missed: out.filter(o => o.k === 'miss').map(o => o.w) };
+}
+const PRON_TIPS = {
+  whether: '“whether” /ˈweð.ər/ — touch your tongue to your top teeth for “th”', the: '“the” /ðə/ — tongue between the teeth, not “duh”',
+  lives: '“lives” /lɪvz/ — finish with a clear “z” sound', could: '“could” /kʊd/ — the “l” is silent', know: '“know” /noʊ/ — the “k” is silent',
+  where: '“where” /wer/ — round your lips for “w”', why: '“why” /waɪ/ — round your lips for “w”', what: '“what” /wʌt/ — soft “t” at the end',
+  wonder: '“wonder” /ˈwʌn.dər/ — the vowel sounds like “uh”', witch: '“witch” /wɪtʃ/ — end with “ch”', castle: '“castle” /ˈkæs.əl/ — the “t” is silent',
+  passed: '“passed” /pæst/ — “-ed” sounds like “t”', escaped: '“escaped” /ɪˈskeɪpt/ — “-ed” sounds like “t”', arrived: '“arrived” /əˈraɪvd/ — “-ed” sounds like “d”',
+  tell: '“tell” /tel/ — finish with a clear “l”', is: '“is” /ɪz/ — ends with a “z” sound', ghost: '“ghost” /ɡoʊst/ — say the “st” at the end',
+  idea: '“idea” /aɪˈdɪə/ — stress the second syllable', friendly: '“friendly” /ˈfrend.li/ — blend “fr” together', crying: '“crying” /ˈkraɪ.ɪŋ/ — blend “kr” together'
+};
+
+/* =========================================================
+   TASK GENERATION (local procedural "spell book")
+   ========================================================= */
+function takeFrom(pool, filter) {
+  const i = pool.findIndex(filter || (() => true));
+  if (i >= 0) return pool.splice(i, 1)[0];
+  const cand = BANK.filter(b => !filter || filter(prepItem(b)));
+  return prepItem(pick(cand.length ? cand : BANK));
+}
+function genLevelTasks(level, items) {
+  const pool = shuffle(items);
+  const T = [];
+  const anyFrame = () => Math.random() < .55 ? pick(Q_FRAMES) : pick(S_FRAMES);
+  const conj = () => pick(['if', 'whether']);
+  if (level === 1) {
+    const plan = shuffle(['repeat', 'transform', 'transform-yn', 'repeat', 'transform']);
+    plan.forEach(p => {
+      const yn = p === 'transform-yn';
+      const x = takeFrom(pool, yn ? (i => i.yn) : (i => !i.yn && !i.subj));
+      const frame = anyFrame(), c = conj();
+      if (p === 'repeat') T.push({ type: 'speak', mode: 'repeat', x, frame, target: sentence(x, frame, c) });
+      else T.push({ type: 'speak', mode: 'transform', x, frame, target: sentence(x, frame, 'if') });
+    });
+  } else if (level === 2) {
+    // blank (wh/if), dictation, type x2, order x2
+    let x = takeFrom(pool); let f = anyFrame(), c = conj();
+    const full = sentence(x, f, c), key = x.yn ? c : x.wh;
+    T.push({ type: 'blank', x, frame: f, full, answer: key, accept: x.yn ? ['if', 'whether'] : [key], mode: 'word' });
+    x = takeFrom(pool); f = anyFrame(); c = conj();
+    const full2 = sentence(x, f, c);
+    const words = full2.replace(/[?.]/g, '').split(' ');
+    const cands = words.filter(w => /^[a-z]+$/i.test(w) && w.length >= 5 && !Q_FRAMES.concat(S_FRAMES).join(' ').toLowerCase().split(' ').includes(w.toLowerCase()));
+    const long = cands.sort((a, b) => b.length - a.length)[0] || words[words.length - 1];
+    T.push({ type: 'blank', x, frame: f, full: full2, answer: long, accept: [long.toLowerCase()], mode: 'dictation' });
+    for (let k = 0; k < 2; k++) {
+      x = takeFrom(pool, i => k === 1 ? i.yn : !i.yn); f = k === 0 ? pick(Q_FRAMES) : pick(S_FRAMES);
+      T.push({ type: 'type', x, frame: f, target: sentence(x, f, 'if') });
+    }
+    for (let k = 0; k < 2; k++) {
+      x = takeFrom(pool); f = anyFrame(); c = conj();
+      const tgt = sentence(x, f, c);
+      const toks = tgt.replace(/([?.])$/, ' $1').split(' ');
+      let sh = shuffle(toks), guard = 0; while (sh.join(' ') === toks.join(' ') && guard++ < 10) sh = shuffle(toks);
+      T.push({ type: 'order', x, frame: f, target: tgt, toks, shuffled: sh });
+    }
+    T.splice(0, T.length, ...[T[0], T[2], T[4], T[1], T[3], T[5]]);
+  } else {
+    // mcq x2, fix x2, dialog x2
+    for (let k = 0; k < 2; k++) {
+      const x = takeFrom(pool, i => k === 1 ? i.yn : !i.yn); const f = anyFrame(), c = conj();
+      const full = sentence(x, f, c), key = x.yn ? c : x.wh;
+      const blanked = f + ' ____ ' + (x.yn ? x.e : x.e.split(' ').slice(1).join(' ')) + (isQFrame(f) ? '?' : '.');
+      let dist = x.yn ? shuffle(['where', 'what', 'why', 'when', 'how']).slice(0, 3)
+        : shuffle(WH_WORDS.filter(w => w !== x.wh && !(x.wh === 'what' && w === 'which') && !(x.wh === 'which' && w === 'what'))).slice(0, 2).concat(['that']);
+      const opts = shuffle([key].concat(dist));
+      T.push({ type: 'mcq', x, frame: f, full, blanked, opts, answer: key });
+    }
+    for (let k = 0; k < 2; k++) {
+      const x = takeFrom(pool, i => !i.subj && (k === 1 ? i.yn : !i.yn)); const f = k === 0 ? pick(Q_FRAMES) : pick(S_FRAMES);
+      const right = sentence(x, f, 'if');
+      const badPunct = f + ' ' + embed(x, 'if') + (isQFrame(f) ? '.' : '?');
+      const badWord = x.yn ? f + ' ' + (x.wrong.replace(/^if /, 'whether ')) + (isQFrame(f) ? '?' : '.') : f + ' ' + pick(WH_WORDS.filter(w => w !== x.wh && w !== 'whose' && w !== 'which')) + ' ' + x.e.split(' ').slice(x.wh === 'what' && x.e.startsWith('what time') ? 2 : 1).join(' ') + (isQFrame(f) ? '?' : '.');
+      const opts = shuffle([right, badPunct, badWord]);
+      T.push({ type: 'fix', x, frame: f, wrong: wrongSentence(x, f), opts, answer: right });
+    }
+    const npcLines = [
+      "Who dares to enter my chamber? Ask me properly, little witch!",
+      "Hmm... a young apprentice. What do you wish to know?",
+      "Speak politely, and maybe I will help you.",
+      "My potion is almost ready. Do you have a question for me?"
+    ];
+    const replies = ["Such a polite question! The answer is in my spell book.", "Well asked! You may add the next ingredient.", "Perfect English! The cauldron glows brighter.", "Excellent! I will tell you everything."];
+    for (let k = 0; k < 2; k++) {
+      const x = takeFrom(pool, i => !i.subj && (k === 1 ? i.yn : !i.yn));
+      const f = pick(['Excuse me, could you tell me', 'Excuse me, do you know', 'Sorry, can you tell me']);
+      const right = f + ' ' + embed(x, 'if') + '?';
+      const bad1 = f + ' ' + x.wrong + '?';
+      const bad2 = x.yn ? f + ' ' + x.dl + '?' : 'Tell me ' + x.dl + '!';
+      T.push({ type: 'dialog', x, frame: f, npc: npcLines[k * 2 + Math.floor(Math.random() * 2)], opts: shuffle([right, bad1, bad2]), answer: right, reply: pick(replies) });
+    }
+  }
+  T.forEach(t => { t.attempts = 0; t.solved = false; });
+  return T;
+}
+
+/* =========================================================
+   AI GENERATION (Claude via the page's "sample" capability)
+   ========================================================= */
+const AI_LOG = { used: false, lastError: '' };
+function validAI(it) {
+  if (!it || typeof it.d !== 'string' || typeof it.e !== 'string') return false;
+  const d = it.d.trim(), e = it.e.trim().replace(/[.]+$/, '');
+  if (!/\?$/.test(d) || /\?/.test(e)) return false;
+  const dw = d.split(/\s+/).length; if (dw < 3 || dw > 12) return false;
+  const yn = !!it.yn;
+  const first = d.split(' ')[0].toLowerCase();
+  if (yn) {
+    if (!['is', 'are', 'was', 'were', 'do', 'does', 'did', 'can', 'could', 'will', 'would', 'should', 'has', 'have', 'may'].includes(first)) return false;
+    if (/^(if|whether)\b/i.test(e)) return false;
+  } else {
+    if (!WH_WORDS.includes(first)) return false;
+    if (e.split(' ')[0].toLowerCase() !== first) return false;
+  }
+  const p = prepItem({ d, e, yn });
+  if (p.subj) return false;
+  if (/\b(you|i)\b/i.test(d)) return false;
+  return true;
+}
+async function aiGenerateItems(level, timeoutMs = 25000) {
+  const sample = await getCap('sample');
+  if (!sample) { AI_LOG.lastError = 'unavailable'; return null; }
+  const theme = ['a haunted forest with lost ghosts, owls and glowing mushrooms', 'a spooky castle with gates, towers, bats and portraits', "a witch's chamber with potions, a cauldron, spell books and a black cat"][level - 1];
+  const prompt = `You write practice items for Thai Grade 11 (Mathayom 5) students learning English EMBEDDED QUESTIONS in a Halloween adventure game. Setting for this level: ${theme}.
+Return ONLY JSON of the form {"items":[ ... ]} with exactly 12 items. Each item:
+{"d": a direct question, "e": the same question as an embedded clause (start lowercase, normal statement word order, no question mark, do/does/did removed and the main verb conjugated for tense/person), "yn": true for a yes/no question else false}
+Rules:
+- 8 wh-questions (mix where/why/what/when/how/which/whose and tenses: present simple, past simple, present continuous, can/will/should, verb to be) and 4 yes/no questions.
+- For yes/no items "e" must NOT contain if/whether (the game adds it).
+- No subject questions (where the wh-word is the subject, e.g. "Who opened the door?").
+- Do not use the words "you" or "I". 4–9 words per question, CEFR B1, spooky but friendly.
+Examples:
+{"d":"Where does the old witch live?","e":"where the old witch lives","yn":false}
+{"d":"Why are the bats flying?","e":"why the bats are flying","yn":false}
+{"d":"Did he pass the exam?","e":"he passed the exam","yn":true}
+Variety seed: ${Math.random().toString(36).slice(2, 8)}`;
+  try {
+    let val;
+    if (typeof sample.json === 'function') val = await withTimeout(sample.json(prompt, { modelTier: 'quick', cache: false }), timeoutMs);
+    else { const r = await withTimeout(sample(prompt, { modelTier: 'quick', cache: false }), timeoutMs); val = JSON.parse((r.text.match(/\{[\s\S]*\}/) || ['{}'])[0]); }
+    const arr = (val && Array.isArray(val.items)) ? val.items : (Array.isArray(val) ? val : []);
+    const good = arr.filter(validAI).map(it => prepItem({ d: it.d.trim(), e: it.e.trim(), yn: !!it.yn }, 'ai'));
+    if (good.length < 6) { AI_LOG.lastError = 'too few valid'; return null; }
+    AI_LOG.used = true;
+    return good;
+  } catch (e) { AI_LOG.lastError = (e && (e.code || e.message)) || 'error'; return null; }
+}
+async function buildTasksForLevel(level, useAI) {
+  let items = null;
+  if (useAI) items = await aiGenerateItems(level);
+  const bank = BANK.map(b => prepItem(b));
+  let src = 'bank';
+  let pool;
+  if (items && items.length) {
+    src = 'ai';
+    // ensure enough yes/no and wh variety by topping up from bank
+    const yn = items.filter(i => i.yn).length;
+    pool = items.concat(shuffle(bank.filter(b => yn < 3 ? b.yn : !b.yn)).slice(0, 3));
+  } else pool = bank;
+  return { tasks: genLevelTasks(level, pool), src };
+}
+
+/* =========================================================
+   3D ENGINE — Three.js
+   ========================================================= */
+let renderer, scene, camera, clock;
+const MAT = {};
+function M(color, o = {}) {
+  const key = color + JSON.stringify(o);
+  if (!MAT[key]) MAT[key] = new THREE.MeshStandardMaterial(Object.assign({ color, roughness: .8, metalness: 0, flatShading: true }, o));
+  return MAT[key];
+}
+function mesh(geo, mat, x = 0, y = 0, z = 0, parent, shadow = true) {
+  const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z);
+  m.castShadow = shadow; m.receiveShadow = true;
+  if (parent) parent.add(m); return m;
+}
+function canvasTex(w, h, draw, repeat) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4;
+  if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeat[0], repeat[1]); }
+  return t;
+}
+let GLOW_TEX = null;
+function glowTex() {
+  if (!GLOW_TEX) GLOW_TEX = canvasTex(128, 128, (g, w, h) => {
+    const r = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+    r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(.25, 'rgba(255,255,255,.55)'); r.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = r; g.fillRect(0, 0, w, h);
+  });
+  return GLOW_TEX;
+}
+function glow(color, size, parent, x = 0, y = 0, z = 0, op = .8) {
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false }));
+  s.scale.set(size, size, 1); s.position.set(x, y, z); if (parent) parent.add(s); return s;
+}
+function textSprite(text, o = {}) {
+  const fs = o.size || 96;
+  const tex = canvasTex(256, 256, (g, w, h) => {
+    g.font = `bold ${fs}px Mali, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    if (o.bg) { g.fillStyle = o.bg; g.beginPath(); g.arc(128, 128, 100, 0, Math.PI * 2); g.fill(); g.lineWidth = 10; g.strokeStyle = o.stroke || '#fff'; g.stroke(); }
+    g.fillStyle = o.color || '#fff'; g.fillText(text, 128, 136);
+  });
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+  s.scale.set(o.scale || 1, o.scale || 1, 1); return s;
+}
+
+function initThree() {
+  renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isTouch ? 1.5 : 1.75));
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15;
+  $('#game').appendChild(renderer.domElement);
+  camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, .1, 500);
+  clock = new THREE.Clock();
+  const onResize = () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); };
+  addEventListener('resize', onResize); addEventListener('orientationchange', () => setTimeout(onResize, 300));
+  if (window.visualViewport) visualViewport.addEventListener('resize', onResize);
+}
+
+/* ---------------- CHARACTERS ---------------- */
+const OUTFITS = {
+  robe_purple: { name: 'Classic Purple', robe: 0x5b2a9e, hat: 0x3a1d6e, cost: 0 },
+  robe_blue: { name: 'Midnight Blue', robe: 0x1f4fa8, hat: 0x152a5e, cost: 60 },
+  robe_orange: { name: 'Pumpkin Spice', robe: 0xe2671c, hat: 0x3b1a08, cost: 90 },
+  robe_green: { name: 'Emerald Spell', robe: 0x1f9e5c, hat: 0x0f3d2a, cost: 120 },
+  robe_rose: { name: 'Rose Moon', robe: 0xc23b7a, hat: 0x5a1a3a, cost: 150 },
+  robe_gold: { name: 'Halloween Master', robe: 0x1a1030, hat: 0xd4a017, cost: 0, badge: 'Halloween Master' }
+};
+const PETS = {
+  pet_cat: { name: 'Magic Black Cat', icon: '🐈‍⬛', cost: 0 },
+  pet_bat: { name: 'Little Bat', icon: '🦇', cost: 100 },
+  pet_pumpkin: { name: 'Bouncy Pumpkin', icon: '🎃', cost: 140 },
+  pet_owl: { name: 'Wise Owl', icon: '🦉', cost: 0, badge: 'Halloween Master' }
+};
+
+function makeWitch(o = {}) {
+  const g = new THREE.Group();
+  const body = new THREE.Group(); g.add(body);
+  const skin = M(0xffd9bf, { flatShading: false, roughness: .7 });
+  const robeMat = new THREE.MeshStandardMaterial({ color: o.robe || 0x5b2a9e, roughness: .75, flatShading: true });
+  const hatMat = new THREE.MeshStandardMaterial({ color: o.hat || 0x3a1d6e, roughness: .7, flatShading: true });
+  const hairMat = M(o.hair || 0x6b3a1f, { flatShading: false, roughness: .6 });
+  const legMat = M(0x2a1b3d), bootMat = M(0x3b2416);
+  const mkLeg = x => { const L = new THREE.Group(); L.position.set(x, .5, 0); body.add(L); mesh(new THREE.CylinderGeometry(.075, .065, .45, 8), legMat, 0, -.22, 0, L); mesh(new THREE.BoxGeometry(.15, .11, .26), bootMat, 0, -.45, .04, L); return L; };
+  const legL = mkLeg(-.13), legR = mkLeg(.13);
+  mesh(new THREE.CylinderGeometry(.2, .46, .82, 12), robeMat, 0, .82, 0, body);
+  mesh(new THREE.TorusGeometry(.29, .03, 6, 16), M(0xffc83d, { metalness: .5, roughness: .4 }), 0, .95, 0, body).rotation.x = Math.PI / 2;
+  mesh(new THREE.CylinderGeometry(.27, .24, .1, 12), M(0xffffff), 0, 1.2, 0, body); // collar
+  mesh(new THREE.ConeGeometry(.07, .12, 4), M(0xd6304a), 0, 1.13, .22, body).rotation.x = Math.PI; // tie
+  const mkArm = x => { const A = new THREE.Group(); A.position.set(x, 1.15, 0); body.add(A); mesh(new THREE.CylinderGeometry(.07, .09, .4, 8), robeMat, 0, -.2, 0, A); mesh(new THREE.SphereGeometry(.07, 10, 8), skin, 0, -.43, 0, A); return A; };
+  const armL = mkArm(-.28), armR = mkArm(.28);
+  armL.rotation.z = .15; armR.rotation.z = -.15;
+  const wand = new THREE.Group(); wand.position.set(0, -.45, .05); armR.add(wand);
+  mesh(new THREE.CylinderGeometry(.015, .02, .45, 6), M(0x5a3a22), 0, 0, .18, wand).rotation.x = Math.PI / 2;
+  const tip = mesh(new THREE.OctahedronGeometry(.05), M(0xfff2a0, { emissive: 0xffd94a, emissiveIntensity: 1.5 }), 0, 0, .42, wand);
+  const tipGlow = glow(0xffe680, .45, wand, 0, 0, .42, .9);
+  // head
+  const head = new THREE.Group(); head.position.y = 1.5; body.add(head);
+  mesh(new THREE.SphereGeometry(.3, 22, 18), skin, 0, 0, 0, head);
+  const eyeMat = M(0x1b0f2e, { flatShading: false, roughness: .3 });
+  const eyes = new THREE.Group(); head.add(eyes);
+  [-.1, .1].forEach(x => {
+    const e = mesh(new THREE.SphereGeometry(.058, 12, 10), eyeMat, x, -.01, .26, eyes); e.scale.set(1, 1.25, .5);
+    mesh(new THREE.SphereGeometry(.02, 8, 6), M(0xffffff, { emissive: 0xffffff, emissiveIntensity: .6 }), x + .02, .02, .29, eyes, false);
+    mesh(new THREE.CircleGeometry(.04, 12), M(0xff9aa8, { flatShading: false, transparent: true, opacity: .6 }), x * 1.6, -.1, .255, head, false).rotation.y = x > 0 ? .5 : -.5;
+  });
+  const mouth = mesh(new THREE.TorusGeometry(.045, .012, 6, 12, Math.PI), M(0x9a2a3a), 0, -.1, .275, head, false); mouth.rotation.z = Math.PI;
+  mesh(new THREE.SphereGeometry(.325, 20, 16), hairMat, 0, .04, -.055, head);
+  mesh(new THREE.CylinderGeometry(.24, .3, .55, 14), hairMat, 0, -.3, -.13, head);
+  const bang = mesh(new THREE.SphereGeometry(.2, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2.4), hairMat, 0, .13, .12, head); bang.scale.set(1.35, .7, .9);
+  // hat
+  const hat = new THREE.Group(); hat.position.y = .27; head.add(hat);
+  mesh(new THREE.CylinderGeometry(.58, .58, .04, 24), hatMat, 0, 0, 0, hat);
+  mesh(new THREE.CylinderGeometry(.29, .32, .12, 16), M(0xffc83d, { metalness: .4 }), 0, .07, 0, hat);
+  mesh(new THREE.CylinderGeometry(.24, .31, .45, 16), hatMat, 0, .3, 0, hat);
+  const tipG = new THREE.Group(); tipG.position.y = .52; tipG.rotation.z = -.45; hat.add(tipG);
+  mesh(new THREE.ConeGeometry(.24, .5, 16), hatMat, .02, .2, 0, tipG);
+  mesh(new THREE.BoxGeometry(.1, .1, .02), M(0xffe27a, { metalness: .6, roughness: .3 }), 0, .08, .31, hat);
+  g.traverse(m => { if (m.isMesh) m.castShadow = true; });
+  return { g, body, legL, legR, armL, armR, head, eyes, hat, robeMat, hatMat, tip, tipGlow, wand };
+}
+function setOutfit(w, key) { const o = OUTFITS[key] || OUTFITS.robe_purple; w.robeMat.color.setHex(o.robe); w.hatMat.color.setHex(o.hat); }
+
+function animWitch(w, st, t, dt) {
+  const { body, legL, legR, armL, armR, eyes, g } = w;
+  let tL = 0, tR = 0, aL = 0, aR = 0, by = 0, bx = 0, ry = 0, az = .15, es = 1;
+  if (st.mode === 'run') {
+    const ph = t * 11; tL = Math.sin(ph) * .8; tR = -tL; aL = -Math.sin(ph) * .7; aR = Math.sin(ph) * .5; by = Math.abs(Math.sin(ph)) * .07;
+  } else if (st.mode === 'air') {
+    tL = .6; tR = -.3; aL = -2.4; aR = -2.2; az = .5;
+  } else if (st.mode === 'celebrate') {
+    const ph = t * 9; aL = -2.9 + Math.sin(ph) * .3; aR = -2.9 - Math.sin(ph) * .3; az = .4; by = Math.abs(Math.sin(ph * .7)) * .35; ry = st.timer * 9;
+  } else if (st.mode === 'scared') {
+    aL = -2.6; aR = -2.6; az = .7; bx = Math.sin(t * 70) * .035; es = 1.5; tL = .3; tR = -.3;
+  } else {
+    aL = Math.sin(t * 2) * .05; aR = -aL; by = Math.sin(t * 2.2) * .012;
+  }
+  const k = Math.min(1, dt * 14);
+  legL.rotation.x = lerp(legL.rotation.x, tL, k); legR.rotation.x = lerp(legR.rotation.x, tR, k);
+  armL.rotation.x = lerp(armL.rotation.x, aL, k); armR.rotation.x = lerp(armR.rotation.x, aR, k);
+  armL.rotation.z = lerp(armL.rotation.z, az, k); armR.rotation.z = lerp(armR.rotation.z, -az, k);
+  body.position.y = lerp(body.position.y, by, k); body.position.x = bx;
+  body.rotation.y = st.mode === 'celebrate' ? ry : lerp(body.rotation.y, 0, k);
+  eyes.scale.setScalar(lerp(eyes.scale.x, es, k));
+  w.tipGlow.material.opacity = .6 + Math.sin(t * 6) * .3;
+}
+
+function makeGhost(color = 0xffffff, o = {}) {
+  const g = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: .35, roughness: .5, transparent: true, opacity: .93, side: THREE.DoubleSide });
+  mesh(new THREE.SphereGeometry(.45, 22, 16, 0, Math.PI * 2, 0, Math.PI / 2), mat, 0, .5, 0, g);
+  const sk = new THREE.CylinderGeometry(.45, .55, .62, 22, 4, true);
+  const p = sk.attributes.position;
+  for (let i = 0; i < p.count; i++) { const y = p.getY(i); if (y < -.3) { const a = Math.atan2(p.getZ(i), p.getX(i)); p.setY(i, y + Math.sin(a * 7) * .08); } }
+  sk.computeVertexNormals(); mesh(sk, mat, 0, .19, 0, g);
+  const eyeM = M(0x1b0f2e, { flatShading: false, roughness: .3 });
+  const eyes = new THREE.Group(); g.add(eyes);
+  [-.15, .15].forEach(x => {
+    const e = mesh(new THREE.SphereGeometry(.07, 12, 10), eyeM, x, .55, .4, eyes, false); e.scale.set(1, 1.35, .5);
+    mesh(new THREE.SphereGeometry(.025, 8, 6), M(0xffffff, { emissive: 0xffffff }), x + .025, .59, .43, eyes, false);
+    mesh(new THREE.CircleGeometry(.05, 12), M(0xff8fb0, { transparent: true, opacity: .55, flatShading: false }), x * 1.7, .43, .42, g, false).rotation.y = x > 0 ? .6 : -.6;
+  });
+  const mouth = mesh(new THREE.SphereGeometry(.055, 10, 8), eyeM, 0, .41, .43, g, false); mouth.scale.set(1, o.sad ? .5 : .8, .4);
+  const armM = mat;
+  const arms = [-.5, .5].map(x => mesh(new THREE.SphereGeometry(.11, 10, 8), armM, x, .3, .05, g));
+  if (o.hat) {
+    const h = new THREE.Group(); h.position.set(.05, .92, 0); h.rotation.z = -.2; g.add(h);
+    mesh(new THREE.CylinderGeometry(.32, .32, .03, 18), M(0x3a1d6e), 0, 0, 0, h);
+    mesh(new THREE.ConeGeometry(.2, .45, 14), M(0x5b2a9e), 0, .23, 0, h);
+  }
+  if (o.headphones) {
+    const hp = mesh(new THREE.TorusGeometry(.47, .04, 8, 20, Math.PI), M(0x2f8cff), 0, .55, 0, g); hp.rotation.z = 0;
+    [-.47, .47].forEach(x => mesh(new THREE.CylinderGeometry(.11, .11, .1, 14), M(0xffa53d), x, .55, 0, g).rotation.z = Math.PI / 2);
+  }
+  const gl = glow(color, 2.2, g, 0, .45, 0, .35);
+  g.traverse(m => { if (m.isMesh) m.castShadow = false; });
+  return { g, mat, eyes, arms, mouth, glow: gl };
+}
+
+function makeCat() {
+  const g = new THREE.Group(); const m = M(0x1b1622, { flatShading: false, roughness: .5 });
+  const b = mesh(new THREE.SphereGeometry(.2, 14, 10), m, 0, .25, 0, g); b.scale.set(.9, .85, 1.4);
+  const head = new THREE.Group(); head.position.set(0, .45, .25); g.add(head);
+  mesh(new THREE.SphereGeometry(.16, 14, 12), m, 0, 0, 0, head);
+  [-.09, .09].forEach(x => {
+    mesh(new THREE.ConeGeometry(.06, .13, 4), m, x, .15, 0, head);
+    mesh(new THREE.SphereGeometry(.035, 8, 8), M(0xc6ff4a, { emissive: 0x9cff00, emissiveIntensity: 1 }), x * .8, .02, .13, head, false);
+  });
+  const legs = [[-.1, .2], [.1, .2], [-.1, -.2], [.1, -.2]].map(([x, z]) => mesh(new THREE.CylinderGeometry(.04, .04, .2, 6), m, x, .1, z, g));
+  const tail = new THREE.Group(); tail.position.set(0, .3, -.27); g.add(tail);
+  for (let i = 0; i < 6; i++) mesh(new THREE.SphereGeometry(.045 - i * .003, 8, 6), m, 0, i * .07, -Math.sin(i * .4) * .1, tail);
+  mesh(new THREE.TorusGeometry(.13, .02, 6, 14), M(0xa64dff, { emissive: 0x7b3fe4, emissiveIntensity: .8 }), 0, .34, .18, g).rotation.x = Math.PI / 2.4;
+  return { g, tail, legs, head };
+}
+function makeBat() {
+  const g = new THREE.Group(); const m = M(0x2a1b3d, { flatShading: false });
+  mesh(new THREE.SphereGeometry(.13, 12, 10), m, 0, 0, 0, g);
+  [-.05, .05].forEach(x => mesh(new THREE.SphereGeometry(.025, 6, 6), M(0xff3b5c, { emissive: 0xff2040 }), x, .03, .11, g, false));
+  [-.05, .05].forEach(x => mesh(new THREE.ConeGeometry(.03, .08, 4), m, x, .13, 0, g));
+  const shape = new THREE.Shape(); shape.moveTo(0, 0); shape.lineTo(.35, .12); shape.lineTo(.3, -.02); shape.lineTo(.22, .03); shape.lineTo(.15, -.06); shape.lineTo(.08, 0); shape.lineTo(0, -.05);
+  const wm = new THREE.MeshStandardMaterial({ color: 0x4b2a6e, side: THREE.DoubleSide });
+  const wl = new THREE.Mesh(new THREE.ShapeGeometry(shape), wm); wl.position.x = .08; g.add(wl);
+  const wr = new THREE.Mesh(new THREE.ShapeGeometry(shape), wm); wr.scale.x = -1; wr.position.x = -.08; g.add(wr);
+  return { g, wl, wr };
+}
+function makeOwl() {
+  const g = new THREE.Group(); const m = M(0x8a5a32, { flatShading: false });
+  const b = mesh(new THREE.SphereGeometry(.18, 12, 10), m, 0, 0, 0, g); b.scale.set(1, 1.2, .9);
+  [-.07, .07].forEach(x => { mesh(new THREE.SphereGeometry(.06, 10, 8), M(0xfff3c4), x, .08, .13, g, false); mesh(new THREE.SphereGeometry(.03, 8, 6), M(0x111111), x, .08, .18, g, false); });
+  mesh(new THREE.ConeGeometry(.025, .06, 4), M(0xffb02e), 0, .02, .18, g).rotation.x = Math.PI / 2;
+  const wl = mesh(new THREE.SphereGeometry(.1, 8, 6), m, -.17, 0, 0, g); wl.scale.set(.4, 1, .8);
+  const wr = mesh(new THREE.SphereGeometry(.1, 8, 6), m, .17, 0, 0, g); wr.scale.set(.4, 1, .8);
+  return { g, wl, wr };
+}
+
+/* ---------------- PROPS ---------------- */
+function pumpkinGeo(r) {
+  const geo = new THREE.SphereGeometry(r, 18, 12); const p = geo.attributes.position;
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i); const a = Math.atan2(z, x); const k = 1 + .09 * Math.cos(a * 8); p.setXYZ(i, x * k, y * .78, z * k); }
+  geo.computeVertexNormals(); return geo;
+}
+const _pgeo = {};
+function makePumpkin(r = .4, lit = true, glowOn = true) {
+  const g = new THREE.Group();
+  const key = r.toFixed(2); if (!_pgeo[key]) _pgeo[key] = pumpkinGeo(r);
+  mesh(_pgeo[key], M(0xff7a1a, { flatShading: false, roughness: .55, emissive: 0x3a1000, emissiveIntensity: .4 }), 0, r * .78, 0, g);
+  mesh(new THREE.CylinderGeometry(r * .08, r * .12, r * .35, 6), M(0x4a6b1f), 0, r * 1.62, 0, g).rotation.z = .2;
+  if (lit) {
+    const fm = M(0xffd36b, { emissive: 0xffb020, emissiveIntensity: 2, flatShading: true });
+    [-1, 1].forEach(s => { const e = mesh(new THREE.CircleGeometry(r * .2, 3), fm, s * r * .36, r * .95, r * .92, g, false); e.rotation.z = Math.PI / 2 + s * .25; });
+    const ms = new THREE.Shape(); const w = r * .55, h = r * .2;
+    ms.moveTo(-w, 0); for (let i = 0; i <= 6; i++) ms.lineTo(-w + i * (2 * w / 6), (i % 2 ? -h * .5 : -h * 1.4)); ms.lineTo(w, 0); for (let i = 6; i >= 0; i--) ms.lineTo(-w + i * (2 * w / 6), i % 2 ? h * .3 : 0);
+    mesh(new THREE.ShapeGeometry(ms), fm, 0, r * .62, r * .95, g, false);
+    if (glowOn) glow(0xffa030, r * 4, g, 0, r * .8, r * .5, .45);
+  }
+  return g;
+}
+function twistedTrunk(h, r0, r1, color) {
+  const geo = new THREE.CylinderGeometry(r1, r0, h, 7, 6); const p = geo.attributes.position;
+  for (let i = 0; i < p.count; i++) { const y = p.getY(i) / h + .5; const a = y * 1.6; const x = p.getX(i), z = p.getZ(i); p.setX(i, x * Math.cos(a) - z * Math.sin(a) + Math.sin(y * 3) * .15); p.setZ(i, x * Math.sin(a) + z * Math.cos(a)); }
+  geo.computeVertexNormals(); return new THREE.Mesh(geo, M(color || 0x3b2a33));
+}
+const LEAF_COLORS = [0x7a2a5a, 0x8e2f4b, 0x4b2a6e, 0xa63a3a, 0x5e2a7e];
+function makeTree(h = 4, bare = false, s = 1) {
+  const g = new THREE.Group();
+  const t = twistedTrunk(h, .38 * s, .12 * s); t.position.y = h / 2; t.castShadow = true; g.add(t);
+  for (let i = 0; i < 3; i++) {
+    const b = new THREE.Mesh(new THREE.CylinderGeometry(.04 * s, .1 * s, 1.4 * s, 5), M(0x3b2a33));
+    const a = i * 2.1 + Math.random(); b.position.set(Math.cos(a) * .4, h * (.6 + i * .1), Math.sin(a) * .4);
+    b.rotation.z = Math.cos(a) * .9; b.rotation.x = -Math.sin(a) * .9; b.castShadow = true; g.add(b);
+  }
+  if (!bare) {
+    const n = 4 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < n; i++) {
+      const c = mesh(new THREE.IcosahedronGeometry(rand(.8, 1.3) * s, 0), M(pick(LEAF_COLORS)), rand(-1, 1) * s, h + rand(-.4, .8), rand(-1, 1) * s, g);
+      c.rotation.set(rand(0, 3), rand(0, 3), 0);
+    }
+  }
+  return g;
+}
+function makeMushroom(color = 0x37e0d0, s = 1) {
+  const g = new THREE.Group();
+  mesh(new THREE.CylinderGeometry(.05 * s, .08 * s, .35 * s, 6), M(0xeae0ff, { emissive: 0x554477, emissiveIntensity: .3 }), 0, .17 * s, 0, g, false);
+  mesh(new THREE.SphereGeometry(.22 * s, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), M(color, { emissive: color, emissiveIntensity: 1.1, flatShading: false }), 0, .32 * s, 0, g, false);
+  glow(color, .9 * s, g, 0, .4 * s, 0, .5);
+  return g;
+}
+function makeGrave() {
+  const g = new THREE.Group(); const m = M(0x6b6880);
+  mesh(new THREE.BoxGeometry(.6, .7, .14), m, 0, .35, 0, g);
+  mesh(new THREE.CylinderGeometry(.3, .3, .14, 14, 1, false, 0, Math.PI), m, 0, .7, 0, g).rotation.set(Math.PI / 2, 0, Math.PI / 2);
+  mesh(new THREE.BoxGeometry(.06, .3, .02), M(0x3d3a4d), 0, .5, .08, g, false);
+  mesh(new THREE.BoxGeometry(.2, .06, .02), M(0x3d3a4d), 0, .55, .08, g, false);
+  g.rotation.z = rand(-.12, .12); return g;
+}
+const torches = [];
+function makeTorch(h = 2.2, light = false) {
+  const g = new THREE.Group();
+  mesh(new THREE.CylinderGeometry(.05, .07, h, 6), M(0x2a2030), 0, h / 2, 0, g);
+  mesh(new THREE.CylinderGeometry(.16, .08, .2, 8), M(0x4a3a2a, { metalness: .5 }), 0, h, 0, g);
+  const f = mesh(new THREE.ConeGeometry(.12, .4, 8), new THREE.MeshBasicMaterial({ color: 0xff8a20 }), 0, h + .25, 0, g, false);
+  const gl = glow(0xff9a30, 1.8, g, 0, h + .25, 0, .7);
+  if (light) { const L = new THREE.PointLight(0xff9a40, 1.4, 9, 2); L.position.set(0, h + .4, 0); g.add(L); }
+  torches.push({ f, gl, ph: Math.random() * 10 });
+  return g;
+}
+function makeCandle(h = .3) {
+  const g = new THREE.Group();
+  mesh(new THREE.CylinderGeometry(.05, .05, h, 8), M(0xfff3d6, { flatShading: false }), 0, h / 2, 0, g, false);
+  const f = mesh(new THREE.ConeGeometry(.03, .1, 6), new THREE.MeshBasicMaterial({ color: 0xffa030 }), 0, h + .06, 0, g, false);
+  const gl = glow(0xffb040, .6, g, 0, h + .06, 0, .7);
+  torches.push({ f, gl, ph: Math.random() * 10 });
+  return g;
+}
+function makeCoin() {
+  const g = new THREE.Group();
+  const c = mesh(new THREE.CylinderGeometry(.25, .25, .06, 18), M(0xffc83d, { metalness: .8, roughness: .25, emissive: 0x6a4a00, emissiveIntensity: .7, flatShading: false }), 0, 0, 0, g);
+  c.rotation.x = Math.PI / 2;
+  mesh(new THREE.TorusGeometry(.17, .025, 6, 16), M(0xffe58a, { metalness: .8, roughness: .2 }), 0, 0, .035, g, false);
+  return g;
+}
+function makeCrystal(color) {
+  const g = new THREE.Group();
+  const c = mesh(new THREE.OctahedronGeometry(.45, 0), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 1.3, metalness: .3, roughness: .1, transparent: true, opacity: .92, flatShading: true }), 0, 0, 0, g);
+  c.scale.set(.8, 1.4, .8);
+  glow(color, 3.2, g, 0, 0, 0, .8);
+  const L = new THREE.PointLight(color, 2, 8, 2); g.add(L);
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(.5, .5, 30, 16, 1, true), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .12, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  beam.position.y = 15; g.add(beam);
+  return g;
+}
+function makePortal(color = 0x9b5cff) {
+  const g = new THREE.Group();
+  mesh(new THREE.TorusGeometry(1.4, .14, 10, 36), M(color, { emissive: color, emissiveIntensity: 1.5 }), 0, 1.6, 0, g, false);
+  const sw = new THREE.Mesh(new THREE.CircleGeometry(1.3, 36), new THREE.MeshBasicMaterial({ map: canvasTex(256, 256, (c, w, h) => {
+    const r = c.createRadialGradient(128, 128, 10, 128, 128, 128); r.addColorStop(0, '#ffffff'); r.addColorStop(.3, '#c9a2ff'); r.addColorStop(1, '#3a0d7a'); c.fillStyle = r; c.fillRect(0, 0, w, h);
+    c.strokeStyle = 'rgba(255,255,255,.5)'; c.lineWidth = 6; for (let i = 0; i < 5; i++) { c.beginPath(); for (let a = 0; a < 12; a += .1) { const rr = a * 9; c.lineTo(128 + Math.cos(a + i * 1.25) * rr, 128 + Math.sin(a + i * 1.25) * rr); } c.stroke(); }
+  }), transparent: true, opacity: .9, side: THREE.DoubleSide }));
+  sw.position.y = 1.6; g.add(sw); g.userData.swirl = sw;
+  glow(color, 5, g, 0, 1.6, 0, .5);
+  return g;
+}
+function moonAndSky(color = 0xfff1c9, pos = [30, 45, -160]) {
+  const moon = new THREE.Mesh(new THREE.SphereGeometry(12, 32, 24), new THREE.MeshBasicMaterial({ color }));
+  moon.position.set(...pos); scene.add(moon);
+  const gl = glow(0xfff0c0, 70, null, ...pos, .55); scene.add(gl);
+  const n = 700, geo = new THREE.BufferGeometry(), arr = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { const th = Math.random() * Math.PI * 2, ph = Math.random() * Math.PI * .45, r = 220; arr[i * 3] = r * Math.sin(ph) * Math.cos(th); arr[i * 3 + 1] = r * Math.cos(ph) + 10; arr[i * 3 + 2] = r * Math.sin(ph) * Math.sin(th); }
+  geo.setAttribute('position', new THREE.BufferAttribute(arr, 3));
+  scene.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xffffff, size: 1.1, sizeAttenuation: true, transparent: true, opacity: .8, fog: false })));
+}
+function skyTexture(top, mid, bottom) {
+  return canvasTex(16, 256, (g, w, h) => { const r = g.createLinearGradient(0, 0, 0, h); r.addColorStop(0, top); r.addColorStop(.55, mid); r.addColorStop(1, bottom); g.fillStyle = r; g.fillRect(0, 0, w, h); });
+}
+function groundTex(base, spots) {
+  return canvasTex(512, 512, (g, w, h) => {
+    g.fillStyle = base; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 1600; i++) { g.fillStyle = pick(spots); g.globalAlpha = rand(.15, .5); const s = rand(2, 9); g.fillRect(rand(0, w), rand(0, h), s, s); }
+    g.globalAlpha = 1;
+  }, [20, 20]);
+}
+function cobbleTex(base = '#4a4466', line = '#231f33', rep = [2, 20]) {
+  return canvasTex(512, 512, (g, w, h) => {
+    g.fillStyle = line; g.fillRect(0, 0, w, h);
+    for (let y = 0; y < h; y += 42) for (let x = (y / 42 % 2) * -30; x < w; x += 60) {
+      const c = 70 + Math.floor(rand(-14, 14)); g.fillStyle = `rgb(${c - 4},${c - 8},${c + 22})`;
+      if (base !== '#4a4466') g.fillStyle = base;
+      g.beginPath(); const rx = x + 4, ry = y + 4, rw = 52 + rand(-4, 4), rh = 34; const r = 12;
+      g.moveTo(rx + r, ry); g.arcTo(rx + rw, ry, rx + rw, ry + rh, r); g.arcTo(rx + rw, ry + rh, rx, ry + rh, r); g.arcTo(rx, ry + rh, rx, ry, r); g.arcTo(rx, ry, rx + rw, ry, r); g.fill();
+      g.fillStyle = 'rgba(255,255,255,.06)'; g.fillRect(rx + 6, ry + 4, rw - 14, 6);
+    }
+  }, rep);
+}
+function brickTex(rep = [4, 2], hue = [58, 44, 92]) {
+  return canvasTex(512, 256, (g, w, h) => {
+    g.fillStyle = '#1c1430'; g.fillRect(0, 0, w, h);
+    for (let y = 0, row = 0; y < h; y += 32, row++) for (let x = row % 2 ? -32 : 0; x < w; x += 64) {
+      const v = rand(-10, 10); g.fillStyle = `rgb(${hue[0] + v},${hue[1] + v},${hue[2] + v})`; g.fillRect(x + 2, y + 2, 60, 28);
+      g.fillStyle = 'rgba(0,0,0,.15)'; g.fillRect(x + 2, y + 24, 60, 6);
+    }
+  }, rep);
+}
+function bannerTex(c1, c2, sym) {
+  return canvasTex(128, 256, (g, w, h) => {
+    g.fillStyle = c1; g.beginPath(); g.moveTo(0, 0); g.lineTo(w, 0); g.lineTo(w, h * .85); g.lineTo(w / 2, h); g.lineTo(0, h * .85); g.fill();
+    g.strokeStyle = c2; g.lineWidth = 6; g.strokeRect(10, 10, w - 20, h * .7);
+    g.fillStyle = c2; g.font = 'bold 70px serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(sym, w / 2, h * .42);
+  });
+}
+
+/* ---------------- PARTICLES ---------------- */
+const bursts = [];
+function burst(pos, color = 0xffd94a, n = 40, speed = 4) {
+  const geo = new THREE.BufferGeometry(); const arr = new Float32Array(n * 3); const vel = [];
+  for (let i = 0; i < n; i++) { arr[i * 3] = pos.x; arr[i * 3 + 1] = pos.y; arr[i * 3 + 2] = pos.z; vel.push(new THREE.Vector3(rand(-1, 1), rand(.3, 1.6), rand(-1, 1)).normalize().multiplyScalar(rand(.4, 1) * speed)); }
+  geo.setAttribute('position', new THREE.BufferAttribute(arr, 3));
+  const mat = new THREE.PointsMaterial({ color, size: .22, map: glowTex(), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+  const pts = new THREE.Points(geo, mat); scene.add(pts);
+  bursts.push({ pts, vel, life: 1.3 });
+}
+function updateBursts(dt) {
+  for (let k = bursts.length - 1; k >= 0; k--) {
+    const b = bursts[k]; b.life -= dt; const p = b.pts.geometry.attributes.position;
+    for (let i = 0; i < b.vel.length; i++) { b.vel[i].y -= 5 * dt; p.setXYZ(i, p.getX(i) + b.vel[i].x * dt, p.getY(i) + b.vel[i].y * dt, p.getZ(i) + b.vel[i].z * dt); }
+    p.needsUpdate = true; b.pts.material.opacity = Math.max(0, b.life);
+    if (b.life <= 0) { scene.remove(b.pts); b.pts.geometry.dispose(); bursts.splice(k, 1); }
+  }
+}
+let fireflies = null;
+function makeFireflies(n, box, color = 0xd8ff7a) {
+  const geo = new THREE.BufferGeometry(); const arr = new Float32Array(n * 3); const base = [];
+  for (let i = 0; i < n; i++) { const v = [rand(box[0], box[1]), rand(.5, 4), rand(box[2], box[3])]; base.push(v); arr.set(v, i * 3); }
+  geo.setAttribute('position', new THREE.BufferAttribute(arr, 3));
+  const pts = new THREE.Points(geo, new THREE.PointsMaterial({ color, size: .25, map: glowTex(), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+  scene.add(pts); fireflies = { pts, base };
+}
+function updateFireflies(t) {
+  if (!fireflies) return; const p = fireflies.pts.geometry.attributes.position;
+  fireflies.base.forEach((b, i) => p.setXYZ(i, b[0] + Math.sin(t * .7 + i) * .8, b[1] + Math.sin(t * 1.3 + i * 2) * .4, b[2] + Math.cos(t * .5 + i) * .8));
+  p.needsUpdate = true;
+}
+
+/* =========================================================
+   LEVEL BUILDERS
+   ========================================================= */
+const LEVEL_INFO = {
+  1: { name: 'The Haunted Forest', th: 'Haunted Forest', skill: 'Listening & Speaking', skillTh: 'Listen & speak', crystal: 'Voice Crystal', color: 0x4be1ff, css: 'blue',
+    mission: 'Help 5 lost ghosts: listen to each ghost, then <b>say</b> the embedded question correctly.', icon: '🎤' },
+  2: { name: 'The Spooky Castle', th: 'Spooky Castle', skill: 'Spelling & Sentence Building', skillTh: 'Type & spell', crystal: 'Spelling Crystal', color: 0xb26bff, css: 'purple',
+    mission: 'Unlock 3 castle gates: <b>type</b> missing words, write full sentences with correct capitals and punctuation, and build sentences from word tiles.', icon: '⌨️' },
+  3: { name: "The Witch's Chamber", th: "Witch's Chamber", skill: 'Grammar & Logic', skillTh: 'Grammar & choices', crystal: 'Grammar Crystal', color: 0xff9a2e, css: 'orange',
+    mission: 'Brew the magic potion: <b>choose</b> the right Wh-word / if / whether, fix broken sentences, and talk politely with the Guardian Witch.', icon: '🧪' }
+};
+
+function addLights(o) {
+  scene.add(new THREE.HemisphereLight(o.sky, o.ground, o.hemi || .85));
+  scene.add(new THREE.AmbientLight(o.amb || 0x2a2050, .5));
+  const d = new THREE.DirectionalLight(o.moon || 0xbfc8ff, o.moonI || .9);
+  d.position.set(10, 22, 8); d.castShadow = true;
+  d.shadow.mapSize.set(isTouch ? 1024 : 1536, isTouch ? 1024 : 1536); const c = d.shadow.camera; c.left = -18; c.right = 18; c.top = 18; c.bottom = -18; c.near = 1; c.far = 70;
+  d.shadow.bias = -.0008;
+  scene.add(d); scene.add(d.target);
+  return d;
+}
+
+function newScene(bgTop, bgMid, bgBot, fogColor, fogDensity) {
+  scene = new THREE.Scene();
+  scene.background = skyTexture(bgTop, bgMid, bgBot);
+  scene.fog = new THREE.FogExp2(fogColor, fogDensity);
+  torches.length = 0; fireflies = null; bursts.length = 0;
+}
+
+function makeMarker() {
+  const s = textSprite('!', { bg: '#ffb020', color: '#3a1600', size: 150, scale: .9 });
+  return s;
+}
+
+/* ---------- LEVEL 1: HAUNTED FOREST ---------- */
+function buildForest() {
+  newScene('#0a0a2e', '#2a1a5e', '#4a2a6e', 0x1d1440, .022);
+  const sun = addLights({ sky: 0x7a6cff, ground: 0x1a3020, hemi: .9, moon: 0xc9d4ff, moonI: 1.0 });
+  moonAndSky();
+  const L = { colliders: [], stations: [], traps: [], coins: [], sun, bounds: { x0: -8, x1: 8, z0: -120, z1: 6 }, spawn: new THREE.Vector3(0, 0, 2), gemPos: new THREE.Vector3(0, 1.4, -112) };
+  const g = new THREE.Mesh(new THREE.PlaneGeometry(80, 220), new THREE.MeshStandardMaterial({ map: groundTex('#1d2a26', ['#2a3d30', '#352a4a', '#1a1f2a', '#40304f']), roughness: 1 }));
+  g.rotation.x = -Math.PI / 2; g.position.z = -55; g.receiveShadow = true; scene.add(g);
+  const path = new THREE.Mesh(new THREE.PlaneGeometry(5, 130), new THREE.MeshStandardMaterial({ map: cobbleTex('#4a4466', '#231f33', [2, 26]), roughness: .9 }));
+  path.rotation.x = -Math.PI / 2; path.position.set(0, .01, -58); path.receiveShadow = true; scene.add(path);
+  // trees: side forest
+  for (let z = 8; z > -130; z -= 3.2) {
+    for (const side of [-1, 1]) {
+      for (let k = 0; k < 2; k++) {
+        const x = side * rand(9, 22) ; const t = makeTree(rand(3.5, 6), Math.random() < .25, rand(.9, 1.4));
+        t.position.set(x, 0, z + rand(-1.5, 1.5)); t.rotation.y = rand(0, 6); scene.add(t);
+      }
+    }
+  }
+  // inner obstacle trees (with colliders)
+  [[-6, -8], [6.2, -20], [-5.5, -30], [5.8, -42], [-6.3, -52], [6, -63], [-5.8, -74], [6.4, -86], [-6, -96], [5.5, -104]].forEach(([x, z]) => {
+    const t = makeTree(rand(4, 5.5), false, 1.1); t.position.set(x, 0, z); scene.add(t); L.colliders.push({ t: 'c', x, z, r: .6 });
+  });
+  // lantern tree clearing
+  const big = makeTree(7, false, 2); big.position.set(-7.5, 0, -60); scene.add(big); L.colliders.push({ t: 'c', x: -7.5, z: -60, r: 1 });
+  for (let i = 0; i < 18; i++) {
+    const a = rand(0, Math.PI * 2), r = rand(1, 3.2);
+    const p = new THREE.Mesh(new THREE.SphereGeometry(.13, 8, 6), M(0xff9a2e, { emissive: 0xff7a10, emissiveIntensity: 2 }));
+    p.position.set(-7.5 + Math.cos(a) * r, rand(4.5, 7.5), -60 + Math.sin(a) * r); scene.add(p);
+  }
+  glow(0xff9a40, 8, scene, -7.5, 6, -60, .35);
+  const lp = new THREE.PointLight(0xff9a40, 1.5, 14, 2); lp.position.set(-6, 5, -60); scene.add(lp);
+  // decorations
+  for (let i = 0; i < 26; i++) { const m = makeMushroom(pick([0x37e0d0, 0x9b5cff, 0x4be1ff]), rand(.7, 1.6)); m.position.set(pick([-1, 1]) * rand(3, 8), 0, rand(-115, 4)); scene.add(m); }
+  for (let i = 0; i < 14; i++) { const p = makePumpkin(rand(.3, .55), Math.random() < .6, false); p.position.set(pick([-1, 1]) * rand(3.2, 8), 0, rand(-115, 4)); p.rotation.y = rand(-.6, .6) + (p.position.x > 0 ? -.8 : .8); scene.add(p); }
+  for (let i = 0; i < 12; i++) { const gr = makeGrave(); const x = pick([-1, 1]) * rand(4, 8), z = rand(-110, 0); gr.position.set(x, 0, z); gr.rotation.y = x > 0 ? -.5 : .5; scene.add(gr); L.colliders.push({ t: 'c', x, z, r: .4 }); }
+  [[3, -2], [-3.5, -45], [3.4, -95]].forEach(([x, z]) => { const t = makeTorch(2, true); t.position.set(x, 0, z); scene.add(t); });
+  // welcome sign
+  const sign = new THREE.Group(); sign.position.set(-3.2, 0, 0); sign.rotation.y = .5; scene.add(sign);
+  mesh(new THREE.BoxGeometry(.12, 1.6, .12), M(0x4a3020), 0, .8, 0, sign);
+  const sp = mesh(new THREE.BoxGeometry(1.6, .8, .08), new THREE.MeshStandardMaterial({ map: canvasTex(256, 128, (c, w, h) => { c.fillStyle = '#6b4424'; c.fillRect(0, 0, w, h); c.strokeStyle = '#3a2210'; c.lineWidth = 8; c.strokeRect(4, 4, w - 8, h - 8); c.fillStyle = '#ffe9b0'; c.font = 'bold 40px Mali'; c.textAlign = 'center'; c.fillText('Listen', w / 2, 52); c.fillText('& Speak', w / 2, 98); }) }), 0, 1.5, 0, sign);
+  L.colliders.push({ t: 'c', x: -3.2, z: 0, r: .3 });
+  makeFireflies(140, [-10, 10, -118, 6]);
+  // stations: lost ghosts
+  const ghostColors = [0xa8e6ff, 0xb8ffc8, 0xffc4e8, 0xfff3a8, 0xd9c4ff];
+  [[-2.4, -14], [2.4, -35], [-2.2, -57], [2.4, -79], [-2, -100]].forEach(([x, z], i) => {
+    const gh = makeGhost(ghostColors[i], { sad: true, headphones: i === 0 });
+    gh.g.position.set(x, .6, z); gh.g.scale.setScalar(.95); scene.add(gh.g);
+    const mk = makeMarker(); mk.position.set(x, 2.5, z); scene.add(mk);
+    L.stations.push({ pos: new THREE.Vector3(x, 0, z), npc: gh, kind: 'ghost', marker: mk, name: ['Luna', 'Pip', 'Mimi', 'Sunny', 'Violet'][i] + ' the Lost Ghost', icon: '👻' });
+  });
+  // traps
+  [-25, -68].forEach((z, i) => {
+    const p = makePumpkin(.6, true, false); p.position.set(0, 0, z); scene.add(p);
+    L.traps.push({ kind: 'roll', obj: p, z, ph: i * 2, update(t) { const x = Math.sin(t * .9 + this.ph) * 7; this.obj.position.x = x; this.obj.rotation.z = -x * 1.2; }, hit(pp) { const o = this.obj.position; return Math.hypot(pp.x - o.x, pp.z - o.z) < .95 && pp.y < .75; } });
+  });
+  [-46, -89].forEach((z, i) => {
+    const gh = makeGhost(0x6a3aa8, {}); gh.mat.emissiveIntensity = .7; gh.g.scale.setScalar(1.2); scene.add(gh.g);
+    gh.eyes.children.forEach(e => { if (e.material) e.material = M(0xff2040, { emissive: 0xff2040, emissiveIntensity: 2 }); });
+    L.traps.push({ kind: 'ghost', obj: gh.g, z, ph: i * 3, update(t) { this.obj.position.set(Math.sin(t * .8 + this.ph) * 6.5, .7 + Math.sin(t * 3) * .2, z + Math.sin(t * 1.6 + this.ph) * 1.2); this.obj.rotation.y = Math.cos(t * .8 + this.ph) > 0 ? Math.PI / 2 : -Math.PI / 2; }, hit(pp) { const o = this.obj.position; return Math.hypot(pp.x - o.x, pp.z - o.z) < 1.0 && pp.y < 1.8; } });
+  });
+  // coins
+  for (let z = -4; z > -112; z -= 4.5) { const c = makeCoin(); const x = Math.sin(z * .3) * 2.5; c.position.set(x, 1, z); scene.add(c); L.coins.push({ g: c, taken: false }); }
+  return L;
+}
+
+/* ---------- LEVEL 2: SPOOKY CASTLE ---------- */
+function makeGate(z) {
+  const g = new THREE.Group(); g.position.z = z; scene.add(g);
+  const stone = new THREE.MeshStandardMaterial({ map: brickTex([1, 3]), roughness: .9 });
+  [-7.4, 7.4].forEach(x => mesh(new THREE.BoxGeometry(1.4, 7, 1.6), stone, x, 3.5, 0, g));
+  const arch = mesh(new THREE.BoxGeometry(16.2, 1.6, 1.6), stone, 0, 6.6, 0, g);
+  const bars = new THREE.Group(); g.add(bars);
+  const iron = M(0x2a2438, { metalness: .7, roughness: .4 });
+  for (let x = -6.3; x <= 6.31; x += .7) mesh(new THREE.BoxGeometry(.12, 5.8, .12), iron, x, 2.9, 0, bars);
+  for (let y = .8; y < 5.8; y += 1.2) mesh(new THREE.BoxGeometry(13, .12, .14), iron, 0, y, 0, bars);
+  for (let x = -6.3; x <= 6.31; x += .7) mesh(new THREE.ConeGeometry(.1, .3, 4), iron, x, -.05, 0, bars).rotation.x = Math.PI;
+  const lock = mesh(new THREE.TorusGeometry(.35, .1, 8, 16), M(0xb26bff, { emissive: 0x9b5cff, emissiveIntensity: 1.6 }), 0, 2.9, .2, bars, false);
+  const lg = glow(0xb26bff, 2.4, bars, 0, 2.9, .3, .8);
+  return { g, bars, lock, open: false, openT: 0, z };
+}
+function buildCastle() {
+  newScene('#120a32', '#3a1a6e', '#5a2a7e', 0x2a1550, .018);
+  const sun = addLights({ sky: 0x9a7cff, ground: 0x3a2050, hemi: .95, moon: 0xd0c0ff, moonI: .9 });
+  moonAndSky(0xffe9d0, [-40, 55, -170]);
+  const L = { colliders: [], stations: [], traps: [], coins: [], gates: [], sun, bounds: { x0: -6.4, x1: 6.4, z0: -106, z1: 6 }, spawn: new THREE.Vector3(0, 0, 3), gemPos: new THREE.Vector3(0, 1.4, -100) };
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(16, 120), new THREE.MeshStandardMaterial({ map: cobbleTex('#4a4466', '#1d1830', [3, 22]), roughness: .85 }));
+  floor.rotation.x = -Math.PI / 2; floor.position.z = -50; floor.receiveShadow = true; scene.add(floor);
+  const outer = new THREE.Mesh(new THREE.PlaneGeometry(200, 260), M(0x1a1230)); outer.rotation.x = -Math.PI / 2; outer.position.set(0, -.02, -50); scene.add(outer);
+  // walls
+  const wallMat = new THREE.MeshStandardMaterial({ map: brickTex([30, 3]), roughness: .9 });
+  [-8.5, 8.5].forEach(x => { const w = mesh(new THREE.BoxGeometry(1.5, 7, 120), wallMat, x, 3.5, -50, scene); });
+  // crenellations + towers + banners + torches
+  for (let z = 6; z > -108; z -= 2) [-8.5, 8.5].forEach(x => mesh(new THREE.BoxGeometry(1.5, .8, .9), M(0x3a2c5c), x, 7.4, z, scene));
+  const roof = M(0x2a1a4e);
+  for (let z = 0; z > -110; z -= 22) [-10, 10].forEach(x => {
+    mesh(new THREE.CylinderGeometry(2, 2.2, 13, 10), new THREE.MeshStandardMaterial({ map: brickTex([3, 3]), roughness: .9 }), x, 6.5, z, scene);
+    mesh(new THREE.ConeGeometry(2.6, 4.5, 10), roof, x, 15.2, z, scene);
+    mesh(new THREE.BoxGeometry(.6, 1, .1), M(0xffd27a, { emissive: 0xffa030, emissiveIntensity: 1.5 }), x + (x > 0 ? -1.9 : 1.9), 9, z, scene, false).rotation.y = Math.PI / 2;
+  });
+  let bi = 0;
+  for (let z = -6; z > -104; z -= 12) [-7.7, 7.7].forEach(x => {
+    const syms = ['☾', '✦', '❖', '♜'];
+    const b = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 2.8), new THREE.MeshStandardMaterial({ map: bannerTex(pick(['#4a1f7a', '#6a1f4a', '#2a2f7a']), '#ffc83d', syms[bi++ % 4]), transparent: true, side: THREE.DoubleSide }));
+    b.position.set(x, 4.4, z); b.rotation.y = x < 0 ? Math.PI / 2 : -Math.PI / 2; scene.add(b);
+  });
+  let ti = 0;
+  for (let z = -2; z > -104; z -= 9) [-7.4, 7.4].forEach(x => { const t = makeTorch(2.4, (ti++ % 3) === 0); t.position.set(x, 0, z); scene.add(t); });
+  // distant castle silhouette
+  for (let i = 0; i < 9; i++) { const x = rand(-40, 40), z = rand(-170, -130); const h = rand(15, 40); mesh(new THREE.CylinderGeometry(rand(2, 4), rand(3, 5), h, 8), M(0x1c1238), x, h / 2, z, scene, false); mesh(new THREE.ConeGeometry(rand(3, 5), rand(6, 10), 8), M(0x140c2a), x, h + 4, z, scene, false); }
+  // courtyard tree at the end
+  const tree = new THREE.Group(); tree.position.set(0, 0, -103.5); scene.add(tree);
+  const tk = twistedTrunk(6, 1.2, .6, 0x5a3a5e); tk.position.y = 3; tree.add(tk);
+  for (let i = 0; i < 9; i++) mesh(new THREE.IcosahedronGeometry(rand(1.3, 2.2), 0), M(pick([0xa6305a, 0xc23b7a, 0x8e2f6b])), rand(-3, 3), rand(6, 8.5), rand(-2, 2), tree);
+  L.colliders.push({ t: 'c', x: 0, z: -103.5, r: 1.4 });
+  [[-3, -101], [3.2, -101.5], [-5, -98]].forEach(([x, z]) => { const p = makePumpkin(.5, true); p.position.set(x, 0, z); scene.add(p); });
+  for (let i = 0; i < 10; i++) { const p = makePumpkin(rand(.25, .4), Math.random() < .5, false); p.position.set(pick([-1, 1]) * rand(5.6, 6.6), 0, rand(-95, 2)); p.rotation.y = p.position.x > 0 ? -1.2 : 1.2; scene.add(p); }
+  // gates
+  [-28, -56, -84].forEach(z => { const gt = makeGate(z); L.gates.push(gt); L.colliders.push({ t: 'b', x0: -8, x1: 8, z0: z - .3, z1: z + .3, gate: gt }); });
+  // stations: spelling ghosts with signs
+  const SPOS = [[-3, -10], [3, -20], [-3, -38], [3, -48], [-3, -66], [3, -76]];
+  SPOS.forEach(([x, z], i) => {
+    const gh = makeGhost(0xf0eaff, { hat: true }); gh.g.position.set(x, .6, z); scene.add(gh.g);
+    const sg = new THREE.Group(); sg.position.set(.55, .1, .35); sg.rotation.z = -.15; gh.g.add(sg);
+    mesh(new THREE.BoxGeometry(.06, .9, .06), M(0x6b4424), 0, -.2, 0, sg);
+    mesh(new THREE.BoxGeometry(.7, .5, .04), new THREE.MeshStandardMaterial({ map: canvasTex(128, 96, (c, w, h) => { c.fillStyle = '#ffe9b0'; c.fillRect(0, 0, w, h); c.fillStyle = '#5a2a9e'; c.font = 'bold 30px Mali'; c.textAlign = 'center'; c.fillText('Spell', w / 2, 40); c.fillText('it!', w / 2, 76); }) }), 0, .25, .04, sg);
+    const mk = makeMarker(); mk.position.set(x, 2.6, z); scene.add(mk);
+    L.stations.push({ pos: new THREE.Vector3(x, 0, z), npc: gh, kind: 'ghost', marker: mk, name: ['Sir Boo', 'Lady Wisp', 'Professor Ghoul', 'Captain Glow', 'Madam Mist', 'Old Spooks'][i], icon: '👻' });
+  });
+  // traps: spikes and axes
+  [-33, -61, -89].forEach((z, i) => {
+    const grp = new THREE.Group(); grp.position.z = z; scene.add(grp);
+    const plate = mesh(new THREE.BoxGeometry(12.6, .05, 2.2), M(0x3a2030, { emissive: 0xff2040, emissiveIntensity: 0 }), 0, .03, 0, grp);
+    const sp = new THREE.Group(); grp.add(sp);
+    for (let x = -6; x <= 6; x += .6) for (let zz = -.8; zz <= .8; zz += .55) mesh(new THREE.ConeGeometry(.12, .6, 5), M(0xc9c4d8, { metalness: .8, roughness: .3 }), x, .3, zz, sp);
+    L.traps.push({ kind: 'spikes', grp, sp, plate, z, ph: i * 1.3, up: false, update(t) {
+      const c = (t + this.ph) % 3.2; this.up = c > 1.9; const warn = c > 1.4 && c <= 1.9;
+      this.sp.position.y = this.up ? 0 : (warn ? -.35 : -.62);
+      this.plate.material.emissiveIntensity = warn ? .8 + Math.sin(t * 30) * .5 : (this.up ? .5 : 0);
+    }, hit(pp) { return this.up && Math.abs(pp.z - z) < 1.15 && pp.y < .45; } });
+  });
+  [-44, -72].forEach((z, i) => {
+    const piv = new THREE.Group(); piv.position.set(0, 6.4, z); scene.add(piv);
+    mesh(new THREE.CylinderGeometry(.06, .06, 4.6, 6), M(0x5a4a3a), 0, -2.3, 0, piv);
+    const bl = new THREE.Shape(); bl.moveTo(0, .5); bl.quadraticCurveTo(1, .2, .9, -.6); bl.lineTo(0, -.2); bl.lineTo(-.9, -.6); bl.quadraticCurveTo(-1, .2, 0, .5);
+    const blade = mesh(new THREE.ExtrudeGeometry(bl, { depth: .08, bevelEnabled: false }), M(0xd8d4e8, { metalness: .9, roughness: .25 }), 0, -4.7, -.04, piv);
+    mesh(new THREE.BoxGeometry(12.6, .03, .4), M(0x6a1f2f, { emissive: 0x6a1020, emissiveIntensity: .4 }), 0, .02, z, scene, false);
+    L.traps.push({ kind: 'axe', piv, blade, z, ph: i * 1.7, update(t) { this.piv.rotation.z = Math.sin(t * 1.5 + this.ph) * 1.15; }, hit(pp) { const a = this.piv.rotation.z; const bx = Math.sin(a) * 4.7, by = 6.4 - Math.cos(a) * 4.7; return Math.abs(pp.z - z) < .55 && Math.abs(pp.x - bx) < 1.0 && pp.y < by + .2 && pp.y + 1.6 > by - .6; } });
+  });
+  for (let z = -4; z > -98; z -= 4) { if ([-28, -56, -84].some(g => Math.abs(g - z) < 1.5)) continue; const c = makeCoin(); c.position.set(Math.sin(z * .4) * 4, 1, z); scene.add(c); L.coins.push({ g: c, taken: false }); }
+  makeFireflies(60, [-6, 6, -104, 4], 0xffb0ff);
+  return L;
+}
+
+/* ---------- LEVEL 3: WITCH'S CHAMBER ---------- */
+function buildChamber() {
+  newScene('#120818', '#2a1030', '#3a1838', 0x2a1028, .02);
+  const sun = addLights({ sky: 0xffa070, ground: 0x3a1a40, hemi: .75, moon: 0xffd0a0, moonI: .55, amb: 0x402030 });
+  const R = 18;
+  const L = { colliders: [], stations: [], traps: [], coins: [], sun, round: R - 1.2, spawn: new THREE.Vector3(0, 0, 13), gemPos: new THREE.Vector3(0, 1.4, 4.2) };
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(R, 64), new THREE.MeshStandardMaterial({ map: canvasTex(1024, 1024, (c, w, h) => {
+    c.fillStyle = '#3a2a2a'; c.fillRect(0, 0, w, h);
+    for (let i = 0; i < 40; i++) for (let j = 0; j < 40; j++) { c.fillStyle = `rgb(${70 + rand(-12, 12)},${50 + rand(-10, 10)},${45 + rand(-10, 10)})`; c.fillRect(i * 26 + 1, j * 26 + 1, 24, 24); }
+    c.translate(w / 2, h / 2); c.strokeStyle = 'rgba(255,170,60,.85)'; c.lineWidth = 6; c.shadowColor = '#ff9a2e'; c.shadowBlur = 20;
+    [300, 360, 420].forEach(r => { c.beginPath(); c.arc(0, 0, r, 0, Math.PI * 2); c.stroke(); });
+    c.beginPath(); for (let i = 0; i <= 5; i++) { const a = -Math.PI / 2 + i * Math.PI * 4 / 5; c.lineTo(Math.cos(a) * 360, Math.sin(a) * 360); } c.stroke();
+    c.font = 'bold 34px serif'; c.fillStyle = 'rgba(255,190,90,.9)'; const runes = 'ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ';
+    for (let i = 0; i < 36; i++) { c.save(); c.rotate(i / 36 * Math.PI * 2); c.fillText(runes[i % runes.length], -10, -380); c.restore(); }
+  }), roughness: .85 }));
+  floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+  const wall = new THREE.Mesh(new THREE.CylinderGeometry(R, R, 12, 48, 1, true), new THREE.MeshStandardMaterial({ map: brickTex([12, 3], [70, 44, 60]), side: THREE.BackSide, roughness: .9 }));
+  wall.position.y = 6; scene.add(wall);
+  const ceil = new THREE.Mesh(new THREE.CircleGeometry(R, 48), M(0x1a0d1a)); ceil.rotation.x = Math.PI / 2; ceil.position.y = 12; scene.add(ceil);
+  // bookshelves & windows around wall
+  for (let i = 0; i < 16; i++) {
+    const a = i / 16 * Math.PI * 2; if (Math.abs(Math.sin(a) + 1) < .15) continue; // leave north for the door
+    const x = Math.cos(a) * (R - .7), z = Math.sin(a) * (R - .7);
+    const grp = new THREE.Group(); grp.position.set(x, 0, z); grp.rotation.y = -a - Math.PI / 2; scene.add(grp);
+    if (i % 2 === 0) {
+      mesh(new THREE.BoxGeometry(3, 4.5, .8), M(0x4a2a1a), 0, 2.25, 0, grp);
+      for (let s = 0; s < 4; s++) for (let b = 0; b < 9; b++) { const bh = rand(.6, .85); mesh(new THREE.BoxGeometry(.25, bh, .5), M(pick([0x8e2f4b, 0x2f5a8e, 0x3a8e5a, 0xd4a017, 0x6b3fa0])), -1.25 + b * .31, .55 + s * 1.05 + bh / 2 - .35, .2, grp, false); }
+    } else {
+      mesh(new THREE.BoxGeometry(1.4, 3, .2), M(0x2a3a7a, { emissive: 0x3a5aff, emissiveIntensity: .8 }), 0, 5.5, .3, grp, false);
+      mesh(new THREE.BoxGeometry(.08, 3, .25), M(0x1a1020), 0, 5.5, .35, grp, false);
+      mesh(new THREE.BoxGeometry(1.4, .08, .25), M(0x1a1020), 0, 5.5, .35, grp, false);
+      const c = makeCandle(.4); c.position.set(-.5, 1.4, .3); grp.add(c); const c2 = makeCandle(.3); c2.position.set(.4, 1.4, .3); grp.add(c2);
+      mesh(new THREE.BoxGeometry(1.6, .1, .6), M(0x4a2a1a), 0, 1.35, .25, grp);
+    }
+  }
+  // cauldron
+  const cg = new THREE.Group(); scene.add(cg);
+  const pot = mesh(new THREE.SphereGeometry(1.5, 24, 16, 0, Math.PI * 2, Math.PI * .3, Math.PI * .7), M(0x1b1530, { metalness: .6, roughness: .4, side: THREE.DoubleSide }), 0, 1.5, 0, cg);
+  mesh(new THREE.TorusGeometry(1.2, .14, 10, 28), M(0x2a2438, { metalness: .7, roughness: .3 }), 0, 2.4, 0, cg).rotation.x = Math.PI / 2;
+  const liquidMat = new THREE.MeshStandardMaterial({ color: 0x7b3fe4, emissive: 0x7b3fe4, emissiveIntensity: 1.2 });
+  const liquid = mesh(new THREE.CircleGeometry(1.15, 28), liquidMat, 0, 2.3, 0, cg, false); liquid.rotation.x = -Math.PI / 2;
+  [0, 2.1, 4.2].forEach(a => mesh(new THREE.CylinderGeometry(.1, .1, .6, 6), M(0x1b1530), Math.cos(a) * 1, .3, Math.sin(a) * 1, cg));
+  const cl = new THREE.PointLight(0x9b5cff, 2.5, 16, 2); cl.position.set(0, 3.2, 0); cg.add(cl);
+  const cglow = glow(0x9b5cff, 6, cg, 0, 2.6, 0, .6);
+  const fire = []; for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; const f = mesh(new THREE.ConeGeometry(.2, .6, 6), new THREE.MeshBasicMaterial({ color: 0xff6a10 }), Math.cos(a) * .6, .3, Math.sin(a) * .6, cg, false); fire.push(f); }
+  L.colliders.push({ t: 'c', x: 0, z: 0, r: 2.0 });
+  L.cauldron = { cg, liquidMat, cl, cglow, fire, bubbles: [] };
+  // final door (north)
+  const door = new THREE.Group(); door.position.set(0, 0, -R + .5); scene.add(door);
+  const dstone = new THREE.MeshStandardMaterial({ map: brickTex([1, 2], [80, 60, 90]) });
+  [-2.2, 2.2].forEach(x => mesh(new THREE.BoxGeometry(1, 6.5, 1.2), dstone, x, 3.25, 0, door));
+  mesh(new THREE.TorusGeometry(2.2, .5, 8, 20, Math.PI), dstone, 0, 6.3, 0, door);
+  const leafM = M(0x4a2a1a, { roughness: .8 });
+  const leaves = [-1, 1].map(s => { const piv = new THREE.Group(); piv.position.set(s * 1.7, 0, 0); door.add(piv); mesh(new THREE.BoxGeometry(1.7, 6.2, .2), leafM, -s * .85, 3.1, 0, piv); return piv; });
+  const sockets = [0x4be1ff, 0xb26bff, 0xff9a2e].map((c, i) => { const s = mesh(new THREE.OctahedronGeometry(.25), M(0x333344, { emissive: 0x000000 }), (i - 1) * .9, 6.8, .5, door, false); s.scale.y = 1.4; s.userData.c = c; return s; });
+  L.door = { door, leaves, sockets, open: false, openT: 0 };
+  L.colliders.push({ t: 'b', x0: -2, x1: 2, z0: -R, z1: -R + 1.2, doorBlock: true });
+  // stations: 4 ingredient pedestals + witch guardian + mirror ghost
+  const pedColors = [0x4be1ff, 0x3fd27a, 0xff4d6d, 0xffc83d];
+  [[-8, -5], [8, -5], [-8.5, 6], [8.5, 6]].forEach(([x, z], i) => {
+    const p = new THREE.Group(); p.position.set(x, 0, z); scene.add(p);
+    mesh(new THREE.CylinderGeometry(.6, .8, 1.1, 8), M(0x5a4a6a), 0, .55, 0, p);
+    const bottle = new THREE.Group(); bottle.position.y = 1.1; p.add(bottle);
+    mesh(new THREE.SphereGeometry(.28, 14, 10), new THREE.MeshStandardMaterial({ color: pedColors[i], emissive: pedColors[i], emissiveIntensity: 1, transparent: true, opacity: .85 }), 0, .3, 0, bottle);
+    mesh(new THREE.CylinderGeometry(.08, .1, .25, 8), M(0xdddddd, { transparent: true, opacity: .7 }), 0, .62, 0, bottle);
+    mesh(new THREE.CylinderGeometry(.09, .09, .08, 8), M(0x6b4424), 0, .76, 0, bottle);
+    glow(pedColors[i], 1.6, bottle, 0, .3, 0, .6);
+    L.colliders.push({ t: 'c', x, z, r: .8 });
+    const mk = makeMarker(); mk.position.set(x, 2.6, z); scene.add(mk);
+    L.stations.push({ pos: new THREE.Vector3(x, 0, z), npc: { g: p, bottle }, kind: 'pedestal', marker: mk, name: ['Moonlight Dew', 'Toad Tears', 'Dragon Pepper', 'Golden Honey'][i] + ' 🧪', icon: '🧪', color: pedColors[i] });
+  });
+  const witch = makeWitch({ robe: 0x3a1a4e, hat: 0x1a0d2a, hair: 0xd8d8e8 }); witch.g.scale.setScalar(1.35); witch.g.position.set(-3.5, 0, -12.5); witch.g.rotation.y = .35; scene.add(witch.g);
+  L.colliders.push({ t: 'c', x: -3.5, z: -12.5, r: .7 });
+  const mk1 = makeMarker(); mk1.position.set(-3.5, 3.4, -12.5); scene.add(mk1);
+  L.stations.push({ pos: new THREE.Vector3(-3.5, 0, -12.5), npc: witch, kind: 'witch', marker: mk1, name: 'Grimelda the Guardian Witch', icon: '🧙‍♀️' });
+  const mirror = new THREE.Group(); mirror.position.set(3.8, 0, -12.5); mirror.rotation.y = -.35; scene.add(mirror);
+  mesh(new THREE.BoxGeometry(1.8, 2.8, .2), M(0xd4a017, { metalness: .7, roughness: .3 }), 0, 1.6, 0, mirror);
+  mesh(new THREE.PlaneGeometry(1.4, 2.4), M(0x9ab8ff, { emissive: 0x5a7aff, emissiveIntensity: .6, metalness: .9, roughness: .1 }), 0, 1.6, .11, mirror, false);
+  const mg = makeGhost(0xd0e4ff, {}); mg.g.scale.setScalar(.6); mg.g.position.set(0, 1.3, .2); mirror.add(mg.g);
+  L.colliders.push({ t: 'c', x: 3.8, z: -12.5, r: .8 });
+  const mk2 = makeMarker(); mk2.position.set(3.8, 3.6, -12.5); scene.add(mk2);
+  L.stations.push({ pos: new THREE.Vector3(3.8, 0, -12.5), npc: mg, kind: 'mirror', marker: mk2, name: 'The Mirror Spirit', icon: '🪞' });
+  // traps: flying books (jump), flame jets (avoid)
+  for (let i = 0; i < 3; i++) {
+    const b = new THREE.Group(); scene.add(b);
+    mesh(new THREE.BoxGeometry(.7, .18, .5), M(pick([0x8e2f4b, 0x2f5a8e, 0x6b3fa0])), 0, 0, 0, b);
+    mesh(new THREE.BoxGeometry(.66, .14, .46), M(0xfff3d6), .03, 0, 0, b, false);
+    L.traps.push({ kind: 'book', obj: b, ph: i * Math.PI * 2 / 3, update(t) { const a = t * .55 + this.ph; this.obj.position.set(Math.cos(a) * 12, .45 + Math.abs(Math.sin(t * 4 + i)) * .2, Math.sin(a) * 12); this.obj.rotation.y = -a; this.obj.rotation.z = Math.sin(t * 8) * .3; }, hit(pp) { const o = this.obj.position; return Math.hypot(pp.x - o.x, pp.z - o.z) < .75 && pp.y < .6; } });
+  }
+  [0, 1, 2, 3].forEach(i => {
+    const a = i * Math.PI / 2 + Math.PI / 4, x = Math.cos(a) * 5, z = Math.sin(a) * 5;
+    const grp = new THREE.Group(); grp.position.set(x, 0, z); scene.add(grp);
+    const ring = mesh(new THREE.CylinderGeometry(.75, .75, .06, 16), M(0x3a1a1a, { emissive: 0xff4a10, emissiveIntensity: .2 }), 0, .03, 0, grp, false);
+    const fl = mesh(new THREE.ConeGeometry(.55, 2.6, 10, 1, true), new THREE.MeshBasicMaterial({ color: 0xff5000, transparent: true, opacity: .7, side: THREE.DoubleSide, depthWrite: false, toneMapped: false }), 0, 1.3, 0, grp, false);
+    const gl = glow(0xff7a20, 3.5, grp, 0, 1.2, 0, .6);
+    L.traps.push({ kind: 'flame', grp, ring, fl, gl, x, z, ph: i * .9, on: false, update(t) {
+      const c = (t + this.ph) % 3.6; this.on = c > 2.2; const warn = c > 1.6 && c <= 2.2;
+      this.fl.visible = this.on; this.gl.visible = this.on; this.fl.scale.set(1, 1 + Math.sin(t * 20) * .1, 1);
+      this.ring.material.emissiveIntensity = warn ? 1 + Math.sin(t * 30) * .6 : (this.on ? 1.4 : .2);
+    }, hit(pp) { return this.on && Math.hypot(pp.x - x, pp.z - z) < .85; } });
+  });
+  for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2; const r = i % 2 ? 14 : 10.5; const c = makeCoin(); c.position.set(Math.cos(a) * r, 1, Math.sin(a) * r); scene.add(c); L.coins.push({ g: c, taken: false }); }
+  for (let i = 0; i < 10; i++) { const p = makePumpkin(rand(.3, .45), true, false); const a = rand(0, Math.PI * 2); p.position.set(Math.cos(a) * 16, 0, Math.sin(a) * 16); p.lookAt(0, 0, 0); scene.add(p); }
+  for (let i = 0; i < 12; i++) { const c = makeCandle(rand(.25, .6)); const a = rand(0, Math.PI * 2), r = rand(2.6, 3.4); c.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); scene.add(c); }
+  makeFireflies(50, [-14, 14, -14, 14], 0xffc070);
+  return L;
+}
+
+/* =========================================================
+   GAME STATE, PLAYER, LOOP
+   ========================================================= */
+const V3 = THREE.Vector3;
+const G = { state: 'boot', level: 1, L: null, tasks: [], src: 'bank', score: 0, lives: 5, maxLives: 5, streak: 0, bestStreak: 0, firstTry: 0, coinsRun: 0, gemSpawned: false, gemObj: null, gemTaken: false, doorDone: false, finaleReady: false, useAI: true, timeStart: 0 };
+const P = { pos: new V3(), vy: 0, onGround: true, face: Math.PI, anim: { mode: 'idle', timer: 0 }, invuln: 0, knock: new V3(), checkpoint: new V3() };
+let witch, boo, petObj, petKind;
+let camYaw = 0, camPitch = .36, camDist = 6.8;
+const keys = {}; let jumpQueued = false; const joy = { x: 0, y: 0, active: false };
+let isTouch = (window.matchMedia && matchMedia('(pointer: coarse)').matches) || (navigator.maxTouchPoints > 0 && !(window.matchMedia && matchMedia('(pointer: fine)').matches));
+addEventListener('touchstart', () => { if (!isTouch) { isTouch = true; if (G.state === 'play') $('#touch').classList.remove('hidden'); } }, { passive: true });
+if (SAVE.useAI === false) G.useAI = false;
+
+/* ---------- HUD / messages ---------- */
+let booTimer = null;
+function booSay(html, ms = 4200) {
+  $('#booText').innerHTML = html; $('#boo').classList.remove('hidden');
+  clearTimeout(booTimer); booTimer = setTimeout(() => $('#boo').classList.add('hidden'), ms);
+}
+let toastTimer = null;
+function toast(html, ms = 2200) { const t = $('#toast'); t.innerHTML = html; t.classList.remove('hidden'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.add('hidden'), ms); }
+function showCombo(m) { const c = $('#combo'); c.textContent = `COMBO x${m}!`; c.classList.remove('hidden'); c.style.animation = 'none'; void c.offsetWidth; c.style.animation = ''; setTimeout(() => c.classList.add('hidden'), 950); }
+function updateHUD() {
+  const info = LEVEL_INFO[G.level];
+  $('#hudLevel').textContent = 'Level ' + G.level;
+  $('#hudScore').textContent = G.score;
+  $('#hudCoins').textContent = SAVE.coins;
+  $('#hudLives').innerHTML = Array.from({ length: G.maxLives }, (_, i) => i < G.lives ? '💜' : '🖤').join('');
+  const solved = G.tasks.filter(t => t.solved).length, n = G.tasks.length;
+  let obj = `${info.icon} ${info.th}: tasks ${solved}/${n}`;
+  if (G.gemSpawned && !G.gemTaken) obj = `💎 Collect the ${info.crystal}!`;
+  if (G.level === 3 && G.gemTaken) obj = '🚪 Walk through the magic door!';
+  $('#hudObjective').innerHTML = obj;
+  $('#hudProgress').innerHTML = G.tasks.map(t => t.solved ? '✅' : '⬜').join(' ') + (G.streak >= 2 ? `  🔥 Combo x${Math.min(3, G.streak)}` : '');
+  const gems = [1, 2, 3].map(i => !!SAVE.levels[i] || (i === G.level && G.gemTaken));
+  document.querySelectorAll('.gem').forEach((el, i) => el.classList.toggle('on', gems[i]));
+}
+
+/* ---------- player & companions ---------- */
+function createPlayer() {
+  witch = makeWitch(OUTFITS[SAVE.outfit] || {}); setOutfit(witch, SAVE.outfit);
+  boo = makeGhost(0xffffff, { hat: true }); boo.g.scale.setScalar(.45);
+  setPet(SAVE.pet);
+}
+function setPet(kind) {
+  petKind = kind;
+  if (kind === 'pet_bat') petObj = makeBat();
+  else if (kind === 'pet_pumpkin') { const g = new THREE.Group(); g.add(makePumpkin(.25, true, false)); petObj = { g }; }
+  else if (kind === 'pet_owl') petObj = makeOwl();
+  else petObj = makeCat();
+}
+function addPlayerToScene() {
+  scene.add(witch.g); scene.add(boo.g); scene.add(petObj.g);
+  witch.g.position.copy(P.pos);
+  boo.g.position.copy(P.pos).add(new V3(-1, 1.6, 1)); petObj.g.position.copy(P.pos).add(new V3(1, 0, 1));
+}
+
+/* ---------- input ---------- */
+addEventListener('keydown', e => {
+  const tag = (e.target && e.target.tagName) || '';
+  if (tag === 'INPUT' || tag === 'TEXTAREA') { if (e.key === 'Escape') closeQuestion(); return; }
+  keys[e.code] = true;
+  if (e.code === 'Space') { e.preventDefault(); jumpQueued = true; }
+  if (e.code === 'KeyE' || e.code === 'Enter') interact();
+  if (e.code === 'Escape') { if (G.state === 'question') closeQuestion(); else if (G.state === 'play') pauseMenu(); }
+});
+addEventListener('keyup', e => { keys[e.code] = false; });
+addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+function setupPointer() {
+  const cv = renderer.domElement; let drag = null;
+  cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, id: e.pointerId }; try { cv.setPointerCapture(e.pointerId); } catch (_) { } });
+  cv.addEventListener('pointermove', e => { if (!drag || drag.id !== e.pointerId) return; camYaw -= (e.clientX - drag.x) * .006; camPitch = clamp(camPitch + (e.clientY - drag.y) * .003, .12, .95); drag.x = e.clientX; drag.y = e.clientY; });
+  const end = () => { drag = null; }; cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+  cv.addEventListener('wheel', e => { camDist = clamp(camDist + e.deltaY * .005, 4, 10); }, { passive: true });
+  const jz = $('#joy'), kn = $('#joyKnob');
+  const jmove = e => { const r = jz.getBoundingClientRect(); let dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2); const d = Math.hypot(dx, dy), m = 45; if (d > m) { dx *= m / d; dy *= m / d; } joy.x = dx / m; joy.y = -dy / m; kn.style.transform = `translate(${dx}px,${dy}px)`; };
+  jz.addEventListener('pointerdown', e => { joy.active = true; try { jz.setPointerCapture(e.pointerId); } catch (_) { } jmove(e); });
+  jz.addEventListener('pointermove', e => { if (joy.active) jmove(e); });
+  const jend = () => { joy.active = false; joy.x = joy.y = 0; kn.style.transform = ''; };
+  jz.addEventListener('pointerup', jend); jz.addEventListener('pointercancel', jend);
+  $('#tJump').addEventListener('pointerdown', e => { e.preventDefault(); jumpQueued = true; });
+  $('#tAct').addEventListener('pointerdown', e => { e.preventDefault(); interact(); });
+  $('#prompt').addEventListener('click', interact);
+}
+
+/* ---------- level flow ---------- */
+function buildLevel(n) {
+  G.level = n;
+  G.L = n === 1 ? buildForest() : n === 2 ? buildCastle() : buildChamber();
+  P.pos.copy(G.L.spawn); P.checkpoint.copy(G.L.spawn); P.vy = 0; P.face = Math.PI; camYaw = 0;
+  if (n === 3) { P.face = Math.PI; }
+  addPlayerToScene();
+  camera.position.set(P.pos.x, P.pos.y + 3, P.pos.z + 7);
+}
+function resetRun() {
+  G.score = 0; G.lives = G.maxLives; G.streak = 0; G.bestStreak = 0; G.firstTry = 0; G.coinsRun = 0;
+  G.gemSpawned = false; G.gemObj = null; G.gemTaken = false; G.doorDone = false; G.finaleReady = false; G.timeStart = performance.now();
+}
+async function beginLevel(n) {
+  resetRun();
+  $('#loading').classList.remove('hidden');
+  $('#loadingText').innerHTML = G.useAI ? '🔮 The witch is brewing new questions with AI...<br><small style="opacity:.7">If you are asked for permission, tap Allow.</small><br><button class="btn ghost small" id="skipAI" style="margin-top:12px">Skip → use the spell book</button>' : '📜 Picking random questions from the spell book...';
+  let skip; const skipP = new Promise(r => skip = r);
+  const sb = $('#skipAI'); if (sb) sb.onclick = () => skip(null);
+  let res = await Promise.race([buildTasksForLevel(n, G.useAI), skipP]);
+  if (!res) res = await buildTasksForLevel(n, false);
+  G.tasks = res.tasks; G.src = res.src;
+  $('#loading').classList.add('hidden');
+  if (G.useAI && res.src !== 'ai') toast('📜 Using questions from the spell book (auto-generated)');
+  if (res.src === 'ai') toast('🔮 AI created a fresh set of questions!');
+  // assign tasks to stations
+  G.L.stations.forEach((s, i) => { s.task = G.tasks[i]; s.solved = false; s.idx = i; });
+  setScreen(''); $('#screen').classList.add('hidden');
+  $('#hud').classList.remove('hidden');
+  if (isTouch) $('#touch').classList.remove('hidden');
+  G.state = 'play'; P.invuln = 1.5;
+  updateHUD();
+  const firstMsg = { 1: 'Little ghosts are lost in the forest! Walk to a ghost with a <b>!</b> and ' + (isTouch ? 'tap ✋' : 'press <kbd>E</kbd>') + ' to talk 👻', 2: 'The castle gates are locked! Help the gate ghosts spell correctly to unlock them 🔐 Watch out for spikes and axes!', 3: "This is the Witch's Chamber! Collect ingredients from the 4 potion stands and talk to the witch and the mirror spirit 🧪 Watch out for fire and flying books!" }[n];
+  booSay(firstMsg, 6500);
+  startMusic();
+}
+
+/* ---------- interaction ---------- */
+function nearestStation() {
+  if (!G.L) return null; let best = null, bd = 2.6;
+  G.L.stations.forEach(s => { if (s.solved) return; const d = Math.hypot(P.pos.x - s.pos.x, P.pos.z - s.pos.z); if (d < bd) { bd = d; best = s; } });
+  return best;
+}
+function interact() {
+  if (G.state !== 'play') return;
+  const s = nearestStation(); if (s) openQuestion(s);
+}
+
+/* ---------- hurt / respawn ---------- */
+const OUCH = ['Eek! Be careful! 😱', 'Yikes! Try jumping over it' + (isTouch ? '!' : ' (Space)'), 'Ouch! Watch the trap timing first.', 'Boo! That was scary 👻'];
+function hurt() {
+  if (P.invuln > 0 || G.state !== 'play') return;
+  G.lives--; P.invuln = 1.6; P.anim = { mode: 'scared', timer: .9 }; SFX.hit(); SFX.boo();
+  P.knock.set(Math.sin(camYaw), 0, Math.cos(camYaw)).multiplyScalar(7); P.vy = 4; P.onGround = false;
+  G.streak = 0;
+  if (G.lives <= 0) {
+    G.lives = G.maxLives; G.score = Math.max(0, G.score - 50);
+    setTimeout(() => { P.pos.copy(P.checkpoint); P.knock.set(0, 0, 0); booSay('Out of hearts! Back to the last checkpoint (−50 points) 💜', 3500); }, 500);
+  } else booSay(pick(OUCH), 2500);
+  updateHUD();
+}
+
+/* ---------- physics ---------- */
+function resolveCollisions() {
+  const L = G.L, p = P.pos, pr = .38;
+  for (const c of L.colliders) {
+    if (c.gate && c.gate.open) continue;
+    if (c.doorBlock && L.door && L.door.open) continue;
+    if (c.t === 'c') {
+      const dx = p.x - c.x, dz = p.z - c.z, d = Math.hypot(dx, dz), mn = c.r + pr;
+      if (d < mn && d > 1e-5) { p.x = c.x + dx / d * mn; p.z = c.z + dz / d * mn; }
+    } else {
+      const cx = clamp(p.x, c.x0, c.x1), cz = clamp(p.z, c.z0, c.z1); const dx = p.x - cx, dz = p.z - cz, d = Math.hypot(dx, dz);
+      if (d < pr) {
+        if (d > 1e-5) { p.x = cx + dx / d * pr; p.z = cz + dz / d * pr; }
+        else { const toMin = p.z - c.z0, toMax = c.z1 - p.z; p.z = toMin < toMax ? c.z0 - pr : c.z1 + pr; }
+      }
+    }
+  }
+  if (L.round) { const d = Math.hypot(p.x, p.z); if (d > L.round) { p.x *= L.round / d; p.z *= L.round / d; } }
+  else { p.x = clamp(p.x, L.bounds.x0, L.bounds.x1); p.z = clamp(p.z, L.bounds.z0, L.bounds.z1); }
+}
+function lerpAngle(a, b, t) { let d = ((b - a + Math.PI) % (Math.PI * 2)) - Math.PI; if (d < -Math.PI) d += Math.PI * 2; return a + d * t; }
+function updatePlayer(dt, t) {
+  let ix = 0, iz = 0;
+  if (keys.KeyW || keys.ArrowUp) iz += 1; if (keys.KeyS || keys.ArrowDown) iz -= 1;
+  if (keys.KeyA || keys.ArrowLeft) ix -= 1; if (keys.KeyD || keys.ArrowRight) ix += 1;
+  ix += joy.x; iz += joy.y;
+  const len = Math.hypot(ix, iz); if (len > 1) { ix /= len; iz /= len; }
+  const fx = -Math.sin(camYaw), fz = -Math.cos(camYaw), rx = Math.cos(camYaw), rz = -Math.sin(camYaw);
+  const mx = fx * iz + rx * ix, mz = fz * iz + rz * ix;
+  const speed = P.anim.mode === 'scared' ? 2.5 : 6.3;
+  P.pos.x += (mx * speed + P.knock.x) * dt; P.pos.z += (mz * speed + P.knock.z) * dt;
+  P.knock.multiplyScalar(Math.max(0, 1 - dt * 6));
+  if (jumpQueued && P.onGround) { P.vy = 7.4; P.onGround = false; SFX.jump(); }
+  jumpQueued = false;
+  P.vy -= 20 * dt; P.pos.y += P.vy * dt;
+  if (P.pos.y <= 0) { P.pos.y = 0; P.vy = 0; P.onGround = true; }
+  resolveCollisions();
+  const moving = Math.hypot(mx, mz) > .08;
+  if (moving) P.face = lerpAngle(P.face, Math.atan2(mx, mz), Math.min(1, dt * 12));
+  if (P.anim.timer > 0) { P.anim.timer -= dt; if (P.anim.timer <= 0) P.anim.mode = 'idle'; }
+  if (P.anim.timer <= 0) P.anim.mode = !P.onGround ? 'air' : moving ? 'run' : 'idle';
+  if (P.invuln > 0) P.invuln -= dt;
+  witch.g.position.copy(P.pos); witch.g.rotation.y = P.face;
+  witch.g.visible = !(P.invuln > 0 && Math.floor(t * 12) % 2 === 0 && P.anim.mode !== 'scared');
+}
+function updateCompanions(dt, t, still) {
+  const c = Math.cos(P.face), s = Math.sin(P.face);
+  const off = (x, z) => new V3(P.pos.x + x * c + z * s, 0, P.pos.z - x * s + z * c);
+  const bt = off(.95, -.7); bt.y = P.pos.y + 1.75 + Math.sin(t * 2.2) * .12;
+  boo.g.position.lerp(bt, Math.min(1, dt * 3)); boo.g.rotation.y = lerpAngle(boo.g.rotation.y, P.face, dt * 3);
+  boo.arms.forEach((a, i) => a.position.y = .3 + Math.sin(t * 4 + i * 3) * .06);
+  const pt = off(-.85, -.9); const pg = petObj.g;
+  const prev = pg.position.clone();
+  if (petKind === 'pet_bat' || petKind === 'pet_owl') { pt.y = P.pos.y + 1.1 + Math.sin(t * 3) * .15; pg.position.lerp(pt, Math.min(1, dt * 3.5)); const f = Math.sin(t * (petKind === 'pet_bat' ? 22 : 10)); petObj.wl.rotation.y = f * .7; petObj.wr.rotation.y = -f * .7; if (petKind === 'pet_owl') { petObj.wl.rotation.z = f * .5; petObj.wr.rotation.z = -f * .5; } }
+  else { pt.y = 0; pg.position.lerp(pt, Math.min(1, dt * 4)); const v = prev.distanceTo(pg.position) / Math.max(dt, 1e-4); if (petKind === 'pet_pumpkin') pg.position.y = Math.abs(Math.sin(t * 8)) * .35 * Math.min(1, v / 2 + .2); else { pg.position.y = P.pos.y > .3 ? P.pos.y * .5 : 0; if (petObj.tail) petObj.tail.rotation.x = Math.sin(t * 3) * .3 - .2; if (petObj.legs) petObj.legs.forEach((l, i) => l.rotation.x = Math.sin(t * 14 + i * Math.PI) * Math.min(.7, v * .15)); } }
+  const mvx = pg.position.x - prev.x, mvz = pg.position.z - prev.z;
+  if (Math.hypot(mvx, mvz) > .005) pg.rotation.y = lerpAngle(pg.rotation.y, Math.atan2(mvx, mvz), dt * 8);
+}
+function updateCamera(dt, title) {
+  const tgt = title ? new V3(0, 2, G.L && G.L.round ? 0 : -16) : new V3(P.pos.x, P.pos.y * .6 + 1.3, P.pos.z);
+  let yaw = camYaw, pit = camPitch, dist = camDist;
+  if (title) { yaw = performance.now() * .00008; pit = .25; dist = 16; }
+  const des = new V3(tgt.x + Math.sin(yaw) * Math.cos(pit) * dist, tgt.y + Math.sin(pit) * dist, tgt.z + Math.cos(yaw) * Math.cos(pit) * dist);
+  if (G.level === 2 && !title) des.x = clamp(des.x, -6.9, 6.9);
+  if (G.L && G.L.round) { const d = Math.hypot(des.x, des.z), m = 17; if (d > m) { des.x *= m / d; des.z *= m / d; } }
+  camera.position.lerp(des, 1 - Math.exp(-dt * (title ? 1.5 : 7)));
+  camera.lookAt(tgt);
+  if (G.L && G.L.sun) { const s = G.L.sun; s.position.set(tgt.x + 10, 22, tgt.z + 8); s.target.position.set(tgt.x, 0, tgt.z); }
+}
+
+/* ---------- world update ---------- */
+function updateWorld(dt, t) {
+  const L = G.L; if (!L) return;
+  torches.forEach(o => { const k = 1 + Math.sin(t * 15 + o.ph) * .12 + Math.sin(t * 23 + o.ph) * .08; o.f.scale.set(1, k, 1); o.gl.material.opacity = .55 + (k - 1) * 1.5; });
+  updateFireflies(t); updateBursts(dt);
+  L.traps.forEach(tr => { tr.update(t); if (G.state === 'play' && tr.hit(P.pos)) hurt(); });
+  L.coins.forEach(c => {
+    if (c.taken) { if (c.g.visible) { c.g.position.y += dt * 4; c.g.scale.multiplyScalar(.9); if (c.g.scale.x < .05) c.g.visible = false; } return; }
+    c.g.rotation.y += dt * 3;
+    if (G.state === 'play' && Math.hypot(P.pos.x - c.g.position.x, P.pos.z - c.g.position.z) < .9 && Math.abs(P.pos.y + .8 - c.g.position.y) < 1.3) {
+      c.taken = true; SAVE.coins++; G.coinsRun++; G.score += 10; SFX.coin(); updateHUD();
+    }
+  });
+  L.stations.forEach((s, i) => {
+    const npc = s.npc;
+    if (s.kind === 'ghost' || s.kind === 'mirror') {
+      if (s.freed) { npc.g.position.y += dt * 1.6; npc.g.rotation.y += dt * 4; npc.mat.opacity = Math.max(0, npc.mat.opacity - dt * .25); if (npc.mat.opacity <= 0) npc.g.visible = false; }
+      else if (s.kind === 'ghost') { npc.g.position.y = .6 + Math.sin(t * 2 + i) * .13; const d = Math.hypot(P.pos.x - s.pos.x, P.pos.z - s.pos.z); if (d < 8) npc.g.rotation.y = lerpAngle(npc.g.rotation.y, Math.atan2(P.pos.x - s.pos.x, P.pos.z - s.pos.z), dt * 4); }
+      else npc.g.position.y = 1.3 + Math.sin(t * 2) * .08;
+    } else if (s.kind === 'pedestal') {
+      if (!s.flying) { npc.bottle.position.y = 1.1 + Math.sin(t * 2 + i) * .08; npc.bottle.rotation.y += dt; }
+    } else if (s.kind === 'witch') {
+      animWitch(npc, { mode: s.solved ? 'celebrate' : 'idle', timer: t }, t, dt);
+      if (!s.solved) npc.g.rotation.y = lerpAngle(npc.g.rotation.y, Math.atan2(P.pos.x - s.pos.x, P.pos.z - s.pos.z), dt * 2);
+    }
+    if (s.marker) { s.marker.position.y = (s.kind === 'witch' ? 3.4 : s.kind === 'mirror' ? 3.6 : 2.5) + Math.sin(t * 3 + i) * .12; }
+  });
+  // flying bottles to cauldron
+  L.stations.forEach(s => {
+    if (!s.flying) return; s.flyT += dt / 1.4; const b = s.npc.bottle; const k = Math.min(1, s.flyT);
+    const from = s.flyFrom, to = new V3(0, 2.6, 0); const pos = from.clone().lerp(to, k); pos.y += Math.sin(k * Math.PI) * 4;
+    b.parent && b.parent !== scene && (scene.attach(b)); b.position.copy(pos); b.rotation.z += dt * 8;
+    if (k >= 1) { s.flying = false; b.visible = false; burst(new V3(0, 2.6, 0), s.color, 50, 4); L.cauldron.liquidMat.color.setHex(s.color); L.cauldron.liquidMat.emissive.setHex(s.color); L.cauldron.cl.color.setHex(s.color); L.cauldron.cglow.material.color.setHex(s.color); SFX.coin(); }
+  });
+  if (L.cauldron) {
+    L.cauldron.fire.forEach((f, i) => f.scale.y = 1 + Math.sin(t * 18 + i) * .25);
+    if (Math.random() < dt * 6) { const b = mesh(new THREE.SphereGeometry(rand(.06, .14), 8, 6), new THREE.MeshBasicMaterial({ color: L.cauldron.liquidMat.color.clone().offsetHSL(0, 0, .2), transparent: true, opacity: .9 }), rand(-.8, .8), 2.35, rand(-.8, .8), scene, false); L.cauldron.bubbles.push({ b, v: rand(.5, 1.2) }); }
+    for (let k = L.cauldron.bubbles.length - 1; k >= 0; k--) { const o = L.cauldron.bubbles[k]; o.b.position.y += o.v * dt; o.b.material.opacity -= dt * .8; if (o.b.material.opacity <= 0) { scene.remove(o.b); o.b.geometry.dispose(); L.cauldron.bubbles.splice(k, 1); } }
+  }
+  if (L.gates) L.gates.forEach(g => { if (g.open && g.openT < 1) { g.openT = Math.min(1, g.openT + dt / 1.6); g.bars.position.y = g.openT * 5.8; } });
+  if (L.door && L.door.open && L.door.openT < 1) { L.door.openT = Math.min(1, L.door.openT + dt / 2); L.door.leaves[0].rotation.y = L.door.openT * 1.6; L.door.leaves[1].rotation.y = -L.door.openT * 1.6; }
+  // gem
+  if (G.gemObj && !G.gemTaken) {
+    const gm = G.gemObj; gm.rotation.y += dt * 2;
+    if (gm.userData.rise != null && gm.userData.rise < 1) { gm.userData.rise = Math.min(1, gm.userData.rise + dt / 2); gm.position.lerpVectors(gm.userData.from, L.gemPos, gm.userData.rise); }
+    else gm.position.y = L.gemPos.y + Math.sin(t * 2) * .2;
+    if (G.state === 'play' && Math.hypot(P.pos.x - gm.position.x, P.pos.z - gm.position.z) < 1.3) collectGem();
+  }
+  if (G.level === 3 && G.finaleReady && G.state === 'play' && Math.hypot(P.pos.x, P.pos.z + 16) < 2.2) finale();
+  // proximity prompt
+  if (G.state === 'play') {
+    const s = nearestStation(); const pr = $('#prompt');
+    if (s) { pr.innerHTML = `${isTouch ? '✋ Tap' : '<kbd>E</kbd>'} Talk to ${esc(s.name)}`; pr.classList.remove('hidden'); } else pr.classList.add('hidden');
+  }
+}
+
+/* ---------- station solved & level end ---------- */
+function stationSolved(s) {
+  s.solved = true; const L = G.L;
+  if (s.marker) { scene.remove(s.marker); s.marker = textSprite('✓', { bg: '#26b866', color: '#fff', size: 150, scale: .8 }); s.marker.position.copy(s.pos).add(new V3(0, 2.5, 0)); scene.add(s.marker); }
+  burst(s.pos.clone().add(new V3(0, 1.2, 0)), G.level === 1 ? 0x9ff2ff : G.level === 2 ? 0xd9a8ff : 0xffc070, 60, 5);
+  P.anim = { mode: 'celebrate', timer: 1.6 };
+  P.checkpoint.copy(s.pos).add(new V3(s.pos.x > 0 ? -1.6 : 1.6, 0, 0));
+  if (s.kind === 'ghost' && G.level === 1) { s.freed = true; s.npc.mouth.scale.set(1.4, .5, .4); }
+  if (s.kind === 'mirror') s.freed = true;
+  if (s.kind === 'pedestal') { s.flying = true; s.flyT = 0; s.flyFrom = s.npc.bottle.getWorldPosition(new V3()); }
+  if (L.gates) {
+    const gi = Math.floor(s.idx / 2), g = L.gates[gi];
+    if (g && !g.open && L.stations[gi * 2].solved && L.stations[gi * 2 + 1].solved) { g.open = true; SFX.door(); burst(new V3(0, 3, g.z), 0xb26bff, 80, 6); booSay(`🔓 Gate ${gi + 1} is open! Keep going!`, 3200); }
+  }
+  const all = G.tasks.every(t => t.solved);
+  if (all && !G.gemSpawned) setTimeout(spawnGem, G.level === 3 ? 1600 : 700);
+  else if (!(L.gates && L.gates.some(g => g.open && g.openT === 0))) {
+    const left = G.tasks.filter(t => !t.solved).length;
+    booSay(pick(['Awesome! ✨', 'Great job! 🎉', 'Amazing! The magic grows stronger 🔮', 'Excellent! 👏']) + ` ${left} task${left > 1 ? 's' : ''} left.`, 3000);
+  }
+  updateHUD(); persist();
+}
+function spawnGem() {
+  const L = G.L, info = LEVEL_INFO[G.level];
+  G.gemSpawned = true; const gm = makeCrystal(info.color); scene.add(gm); G.gemObj = gm;
+  if (G.level === 3) { gm.userData.from = new V3(0, 2.6, 0); gm.userData.rise = 0; gm.position.copy(gm.userData.from); burst(new V3(0, 3, 0), 0xffc070, 120, 7); }
+  else gm.position.copy(L.gemPos);
+  SFX.gem();
+  booSay(`💎 The <b>${info.crystal}</b> has appeared ${G.level === 3 ? 'from the cauldron' : 'at the end of the path'} — go and get it!`, 5000);
+  updateHUD();
+}
+function collectGem() {
+  G.gemTaken = true; scene.remove(G.gemObj); SFX.gem(); burst(P.pos.clone().add(new V3(0, 1.5, 0)), LEVEL_INFO[G.level].color, 120, 7);
+  P.anim = { mode: 'celebrate', timer: 2.2 }; updateHUD();
+  if (G.level === 3) {
+    const D = G.L.door; let k = 0;
+    const lightOne = () => { const s = D.sockets[k]; s.material = M(s.userData.c, { emissive: s.userData.c, emissiveIntensity: 2 }); glow(s.userData.c, 1.4, D.door, s.position.x, s.position.y, s.position.z + .1, .9); SFX.coin(); k++; if (k < 3) setTimeout(lightOne, 450); else setTimeout(() => { D.open = true; SFX.door(); G.finaleReady = true; booSay('🚪 All 3 crystals! The door to the final magic room is open — walk in!', 6000); updateHUD(); }, 600); };
+    setTimeout(lightOne, 700);
+    levelComplete(true);
+  } else setTimeout(() => levelComplete(false), 1300);
+}
+function computeStars() { const r = G.firstTry / Math.max(1, G.tasks.length); return r >= .85 ? 3 : r >= .6 ? 2 : 1; }
+function levelComplete(silent) {
+  const n = G.level, info = LEVEL_INFO[n];
+  const stars = computeStars(); const lifeBonus = G.lives * 20; G.score += lifeBonus;
+  const prev = SAVE.levels[n] || { best: 0, stars: 0, plays: 0 };
+  SAVE.levels[n] = { best: Math.max(prev.best, G.score), stars: Math.max(prev.stars, stars), last: G.score, plays: (prev.plays || 0) + 1, firstTry: G.firstTry, tasks: G.tasks.length, bestCombo: Math.max(prev.bestCombo || 0, G.bestStreak), date: Date.now() };
+  SAVE.maxLevel = Math.max(SAVE.maxLevel, Math.min(3, n + 1));
+  if (!SAVE.badges.includes(info.crystal)) SAVE.badges.push(info.crystal);
+  SAVE.history.push({ level: n, score: G.score, stars, src: G.src, at: Date.now() }); if (SAVE.history.length > 40) SAVE.history.shift();
+  persist(); syncCloud();
+  G.lastResult = { n, stars, lifeBonus };
+  if (silent) return;
+  showLevelResult();
+}
+
+/* ---------- main loop ---------- */
+function loop() {
+  requestAnimationFrame(loop);
+  const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime;
+  if (!G.L) return;
+  if (G.state === 'play') updatePlayer(dt, t);
+  else if (P.anim.timer > 0) { P.anim.timer -= dt; if (P.anim.timer <= 0) P.anim.mode = 'idle'; }
+  if (G.state !== 'play' && P.anim.timer <= 0) P.anim.mode = 'idle';
+  if (witch) { animWitch(witch, { mode: P.anim.mode, timer: P.anim.timer }, t, dt); if (G.state !== 'play') { witch.g.visible = true; witch.g.position.copy(P.pos); witch.g.rotation.y = P.face; } }
+  if (boo && petObj) updateCompanions(dt, t);
+  updateWorld(dt, t);
+  updateCamera(dt, G.state === 'title');
+  if (G.L && G.L.portal) G.L.portal.userData.swirl.rotation.z += dt;
+  renderer.render(scene, camera);
+}
+
+/* =========================================================
+   SCREENS
+   ========================================================= */
+function setScreen(html, clear) {
+  const s = $('#screen'); s.innerHTML = html; s.classList.toggle('hidden', !html); s.classList.toggle('clear', !!clear);
+  s.scrollTop = 0;
+}
+function starStr(n) { return '★'.repeat(n) + '☆'.repeat(3 - n); }
+function levelUnlocked(n) { return SAVE.allUnlocked || n <= SAVE.maxLevel; }
+const CONTROLS_HINT = isTouch
+  ? 'Controls: drag the <b>joystick</b> to move • <b>⤒</b> jump • <b>✋</b> talk • swipe the screen to turn the camera'
+  : 'Controls: <kbd>W A S D</kbd> / arrows move • <kbd>Space</kbd> jump • <kbd>E</kbd> talk • drag the mouse to turn the camera • scroll to zoom';
+
+function titleScreen() {
+  G.state = 'title';
+  $('#hud').classList.add('hidden'); $('#touch').classList.add('hidden'); $('#prompt').classList.add('hidden'); $('#qwrap').classList.add('hidden');
+  if (!G.L || G.level !== 1) { buildLevel(1); }
+  const lv = n => { const i = LEVEL_INFO[n], s = SAVE.levels[n]; return `<button class="lvl-card l${n} ${levelUnlocked(n) ? '' : 'locked'}" data-lv="${n}">
+    <div class="stars">${s ? starStr(s.stars) : ''}</div><div class="ln">Level ${n}</div><div class="lt">${i.name}</div><div class="ld">${i.icon} ${i.skill}<br>Reward: ${i.crystal}</div></button>`; };
+  setScreen(`<div class="card">
+    <h1 class="logo">Haunted Quest</h1>
+    <div class="sub-logo">Embedded Questions</div>
+    <p class="tagline">Ask it right • Say it right • Write it right — a Halloween magic adventure</p>
+    <div class="row name-row">
+      <label class="field">Name / nickname<input id="inName" maxlength="30" value="${esc(SAVE.name)}" placeholder="e.g. Mind" autocomplete="off"></label>
+      <label class="field f-cls">Class<input id="inCls" maxlength="8" value="${esc(SAVE.cls)}" placeholder="M.5/1" autocomplete="off"></label>
+      <label class="field f-no">No.<input id="inNo" maxlength="4" value="${esc(SAVE.no)}" placeholder="12" inputmode="numeric" autocomplete="off"></label>
+    </div>
+    <div class="menu-grid">${lv(1)}${lv(2)}${lv(3)}</div>
+    <div class="row start-row" style="margin-top:14px;align-items:center">
+      <button class="btn" id="btnStart" style="flex:2">🎃 Start the Adventure!</button>
+      <label class="ai-toggle"><input type="checkbox" id="chkAI" ${G.useAI ? 'checked' : ''}> 🔮 Let AI create new questions every time</label>
+    </div>
+    <div class="row menu-row" style="margin-top:10px">
+      <button class="btn purple small" id="btnWard">🧙 Outfits & Pets</button>
+      <button class="btn blue small" id="btnRules2">📖 The 3 Magic Rules</button>
+      <button class="btn ghost small" id="btnMy">📊 My Progress</button>
+      <button class="btn ghost small hidden" id="btnTeacher">👩‍🏫 Teacher Dashboard</button>
+    </div>
+    <div class="feature-row">
+      <div class="feature"><b>🎮</b>3D adventure: run, jump and dodge traps</div>
+      <div class="feature"><b>🎤</b>Real speaking with a microphone + model audio</div>
+      <div class="feature"><b>⌨️</b>Real typing: spelling and sentence building</div>
+      <div class="feature"><b>🏆</b>Combos, coins, stars and level badges</div>
+    </div>
+    <p class="hint-line" style="text-align:center;margin:10px 0 0">${CONTROLS_HINT}</p>
+  </div>`);
+  const saveInfo = () => { SAVE.name = $('#inName').value.trim(); SAVE.cls = $('#inCls').value.trim(); SAVE.no = $('#inNo').value.trim(); persist(); };
+  const go = n => {
+    saveInfo(); ac();
+    if (!SAVE.name) { $('#inName').focus(); $('#inName').style.borderColor = '#ff4d6d'; toast('✏️ Please enter your name first'); return; }
+    if (!levelUnlocked(n)) { toast(`🔒 Finish Level ${n - 1} first`); return; }
+    SFX.click(); introScreen(n);
+  };
+  document.querySelectorAll('.lvl-card').forEach(b => b.onclick = () => go(+b.dataset.lv));
+  $('#btnStart').onclick = () => go(Math.min(SAVE.maxLevel, [1, 2, 3].find(n => !SAVE.levels[n]) || 1));
+  $('#chkAI').onchange = e => { G.useAI = e.target.checked; SAVE.useAI = G.useAI; persist(); };
+  $('#btnWard').onclick = () => { saveInfo(); wardrobeScreen(); };
+  $('#btnRules2').onclick = () => rulesScreen(titleScreen);
+  $('#btnMy').onclick = () => { saveInfo(); myResultsScreen(); };
+  getCap('user').then(u => { try { if (u && u.isOwner && u.isOwner()) $('#btnTeacher') && $('#btnTeacher').classList.remove('hidden'); } catch (e) { } });
+  $('#btnTeacher').onclick = teacherScreen;
+}
+
+function introScreen(n) {
+  G.state = 'intro';
+  if (G.level !== n || !G.L || G.L.used) buildLevel(n);
+  G.L.used = true;
+  const i = LEVEL_INFO[n];
+  const tips = {
+    1: '🎤 Answer by speaking into the microphone (if the mic is not available, type your answer or use your keyboard’s dictation button).<br>🔊 Replay the model audio as often as you like • 🐢 slow audio',
+    2: '⌨️ Type the words and sentences yourself. The game checks <b>spelling, capital letters and the end mark ? / .</b><br>🔐 Every 2 correct answers open 1 gate',
+    3: '🧪 Choose correct answers to add ingredients to the cauldron.<br>🧙‍♀️ Talk politely to the Guardian Witch using embedded questions'
+  }[n];
+  const traps = {
+    1: '🎃 Rolling pumpkins (jump over them) • 👻 Purple red-eyed ghosts (walk around them)',
+    2: '🗡️ Swinging axes (watch the timing) • ⚠️ Spikes (when the floor flashes red they are coming up — jump or wait)',
+    3: '🔥 Fire pillars (a flashing ring means fire is coming) • 📕 Flying books (jump over them)'
+  }[n];
+  setScreen(`<div class="card ${i.css}" style="max-width:640px">
+    <h2>Level ${n}: ${i.name}</h2>
+    <p style="margin:0 0 6px;color:#ffe1a8"><b>${i.icon} ${i.skill}</b></p>
+    <div class="rule">🎯 <b>Mission:</b> ${i.mission}</div>
+    <div class="rule">💡 ${tips}</div>
+    <div class="rule">⚠️ <b>Traps:</b> ${traps}</div>
+    <div class="rule">🏆 <b>Reward:</b> ${i.crystal}${n === 3 ? ' + the Halloween Master badge' : ''} • Answer correctly in a row for <b>Combo x2, x3</b></div>
+    <p class="hint-line">${CONTROLS_HINT}</p>
+    <div class="row" style="margin-top:12px"><button class="btn ghost" id="bBack">← Back</button><button class="btn blue" id="bRule">📖 Rules</button><button class="btn" id="bGo" style="flex:2">Start Level! ▶</button></div>
+  </div>`, true);
+  $('#bBack').onclick = () => { G.L.used = true; titleScreen(); };
+  $('#bRule').onclick = () => rulesScreen(() => introScreen(n));
+  $('#bGo').onclick = () => { SFX.click(); beginLevel(n); };
+}
+
+function rulesScreen(back) {
+  const prevState = G.state; if (G.state === 'play') G.state = 'paused';
+  setScreen(`<div class="card" style="max-width:720px">
+    <button class="close-x" id="rx">✕</button>
+    <h2>📖 The Spell Book: Embedded Questions</h2>
+    <p style="margin-top:0">An embedded question is <b>a question inside another sentence</b>, for example after <i>Do you know…, Could you tell me…, I wonder…, I don't know…</i> — so be extra careful with word order.</p>
+    <div class="rule"><b>Rule 1: Use statement word order</b> (subject + verb) and drop do / does / did<br>
+      <span class="ok">✔ Could you tell me where he lives?</span><br><span class="no">✘ Could you tell me where does he live?</span></div>
+    <div class="rule"><b>Rule 2: Choose the Wh-word that matches the meaning</b><br>
+      <span class="ok">I wonder where she went.</span> (place) • <span class="ok">Do you know why he is crying?</span> (reason)<br>
+      <small>where = place • why = reason • what = thing • when = time • how = way • who = person • which = choice • whose = owner</small></div>
+    <div class="rule"><b>Rule 3: Use if / whether for yes/no questions</b><br>
+      <span class="ok">I don't know if she is coming.</span><br><span class="ok">Could you tell me whether he passed the exam?</span></div>
+    <div class="rule"><b>Punctuation tip</b> — look at the main sentence: <i>Do you know / Could you tell me …</i> → ends with <b>?</b> • <i>I wonder / I don't know / I'm not sure …</i> → ends with <b>.</b></div>
+    <div class="rule"><b>Change the verb for the tense:</b> Where <u>did</u> she <u>go</u>? → where she <b>went</b> • What <u>does</u> it <u>mean</u>? → what it <b>means</b> • Is she coming? → if she <b>is</b> coming</div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="rOk">Got it! ✨</button></div>
+  </div>`);
+  const done = () => { if (prevState === 'play') { setScreen(''); G.state = 'play'; } else (back || titleScreen)(); };
+  $('#rx').onclick = done; $('#rOk').onclick = done;
+}
+
+function pauseMenu() {
+  G.state = 'paused'; $('#prompt').classList.add('hidden');
+  setScreen(`<div class="card" style="max-width:420px;text-align:center">
+    <h2>⏸ Paused</h2>
+    <div style="display:grid;gap:10px">
+      <button class="btn" id="pRes">▶ Resume</button>
+      <button class="btn blue" id="pRule">📖 Magic Rules</button>
+      <button class="btn purple" id="pRe">🔄 Restart Level (new questions)</button>
+      <button class="btn ghost" id="pHome">🏠 Main Menu</button>
+    </div></div>`);
+  $('#pRes').onclick = () => { setScreen(''); G.state = 'play'; P.invuln = 1; };
+  $('#pRule').onclick = () => rulesScreen(pauseMenu);
+  $('#pRe').onclick = () => { G.L.used = true; introScreen(G.level); };
+  $('#pHome').onclick = () => { G.L.used = true; titleScreen(); };
+}
+
+function showLevelResult() {
+  G.state = 'result'; $('#prompt').classList.add('hidden');
+  const r = G.lastResult, i = LEVEL_INFO[r.n], sec = Math.round((performance.now() - G.timeStart) / 1000);
+  setScreen(`<div class="card ${i.css}" style="max-width:560px;text-align:center">
+    <h2>🎉 Level ${r.n} Complete!</h2>
+    <div class="stars-big" style="color:#ffc83d">${starStr(r.stars)}</div>
+    <p style="font-size:18px;margin:4px 0">You earned the <b>💎 ${i.crystal}</b></p>
+    <div class="meter">
+      <div><div class="lbl">Score</div><div class="val">⭐ ${G.score}</div><div class="hint-line">includes heart bonus +${r.lifeBonus}</div></div>
+      <div><div class="lbl">Correct on first try</div><div class="val">${G.firstTry}/${G.tasks.length}</div><div class="hint-line">Best combo x${Math.min(3, Math.max(1, G.bestStreak))} (${G.bestStreak} in a row)</div></div>
+      <div><div class="lbl">Coins this round</div><div class="val">🪙 ${G.coinsRun}</div></div>
+      <div><div class="lbl">Time</div><div class="val">⏱ ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}</div></div>
+    </div>
+    <p class="hint-line">${G.src === 'ai' ? '🔮 This round’s questions were created by AI' : '📜 This round’s questions came from the spell book'}${cloudState === 'ok' ? ' • ☁️ Score saved online' : ' • 💾 Saved on this device'}</p>
+    <div class="row" style="margin-top:8px">
+      <button class="btn ghost" id="rHome">🏠 Menu</button>
+      <button class="btn purple" id="rAgain">🔄 Play Again</button>
+      ${r.n < 3 ? '<button class="btn" id="rNext" style="flex:1.6">Next Level ➜</button>' : ''}
+    </div></div>`);
+  $('#rHome').onclick = () => { G.L.used = true; titleScreen(); };
+  $('#rAgain').onclick = () => { G.L.used = true; introScreen(r.n); };
+  if ($('#rNext')) $('#rNext').onclick = () => { G.L.used = true; introScreen(r.n + 1); };
+}
+
+function finale() {
+  G.state = 'final'; $('#prompt').classList.add('hidden');
+  if (!SAVE.badges.includes('Halloween Master')) SAVE.badges.push('Halloween Master');
+  ['robe_gold', 'pet_owl'].forEach(k => !SAVE.unlocked.includes(k) && SAVE.unlocked.push(k));
+  persist(); syncCloud();
+  SFX.gem(); setTimeout(SFX.correct, 600);
+  for (let k = 0; k < 5; k++) setTimeout(() => burst(P.pos.clone().add(new V3(rand(-2, 2), 2 + rand(0, 2), rand(-2, 2))), pick([0x4be1ff, 0xb26bff, 0xff9a2e, 0xffd94a]), 90, 6), k * 350);
+  P.anim = { mode: 'celebrate', timer: 4 };
+  const s = summaryObj();
+  setScreen(`<div class="card orange" style="max-width:620px">
+    <div class="cert">
+      <div style="font-size:46px">🏆🎃🧙‍♀️</div>
+      <h2 style="font-size:34px;margin:4px 0">HALLOWEEN MASTER</h2>
+      <p style="margin:2px 0">This badge is proudly awarded to</p>
+      <p style="font-size:28px;font-weight:700;margin:4px 0;color:#fff">${esc(SAVE.name || 'Witch Apprentice')}</p>
+      <p style="margin:2px 0">${esc(SAVE.cls ? 'Class ' + SAVE.cls : '')} ${esc(SAVE.no ? '• No. ' + SAVE.no : '')}</p>
+      <p>for collecting all 3 Magic Question Gems 💎💎💎 and freeing the castle from the curse!</p>
+      <div class="meter">
+        <div><div class="lbl">Total score (best of each level)</div><div class="val">⭐ ${s.total}</div></div>
+        <div><div class="lbl">Total stars</div><div class="val">${s.stars}/9</div></div>
+      </div>
+      <p class="hint-line">🎁 Unlocked: the <b>Halloween Master</b> outfit and the <b>Wise Owl 🦉</b> pet!</p>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn blue" id="fCopy">📋 Copy My Results (for the teacher)</button>
+      <button class="btn purple" id="fWard">🧙 Try the New Outfit</button>
+      <button class="btn" id="fHome">🏠 Main Menu</button>
+    </div></div>`);
+  $('#fCopy').onclick = () => copyText(resultText());
+  $('#fWard').onclick = () => { G.L.used = true; wardrobeScreen(); };
+  $('#fHome').onclick = () => { G.L.used = true; titleScreen(); };
+}
+
+function copyText(txt) {
+  const done = () => toast('📋 Copied! Paste it to your teacher in LINE / Google Classroom', 3000);
+  try { navigator.clipboard.writeText(txt).then(done, () => fallbackCopy(txt)); } catch (e) { fallbackCopy(txt); }
+}
+function fallbackCopy(txt) {
+  setScreen(`<div class="card" style="max-width:600px"><h2>📋 Copy this text</h2><textarea id="cpTxt" style="width:100%;height:240px;font-size:14px;border-radius:12px;padding:10px" readonly>${esc(txt)}</textarea><div class="row" style="margin-top:8px"><button class="btn" id="cpOk">Close</button></div></div>`);
+  const ta = $('#cpTxt'); ta.focus(); ta.select();
+  $('#cpOk').onclick = titleScreen;
+}
+
+function wardrobeScreen() {
+  G.state = 'title';
+  const item = (key, o, kind) => {
+    const owned = SAVE.unlocked.includes(key), on = (kind === 'robe' ? SAVE.outfit : SAVE.pet) === key;
+    const lock = o.badge && !owned ? `🏅 Unlocks with the ${o.badge} badge` : (!owned ? `🪙 ${o.cost}` : (on ? 'Wearing ✓' : 'Tap to use'));
+    const vis = kind === 'robe' ? `<div class="swatch" style="background:linear-gradient(135deg,#${o.robe.toString(16).padStart(6, '0')} 60%,#${o.hat.toString(16).padStart(6, '0')} 60%)"></div>` : `<div style="font-size:40px">${o.icon}</div>`;
+    return `<button class="shop-item ${on ? 'on' : ''}" data-k="${key}" data-kind="${kind}">${vis}<div><b>${o.name}</b></div><div class="hint-line">${lock}</div></button>`;
+  };
+  setScreen(`<div class="card purple" style="max-width:720px">
+    <button class="close-x" id="wx">✕</button>
+    <h2>🧙 Outfits & Pets</h2>
+    <p style="margin-top:0">Your coins: <b>🪙 ${SAVE.coins}</b> — collect coins in the levels and answer correctly for bonuses (combos give more!)</p>
+    <h3>Robes</h3><div class="shop">${Object.entries(OUTFITS).map(([k, o]) => item(k, o, 'robe')).join('')}</div>
+    <h3>Pets</h3><div class="shop">${Object.entries(PETS).map(([k, o]) => item(k, o, 'pet')).join('')}</div>
+  </div>`);
+  $('#wx').onclick = titleScreen;
+  document.querySelectorAll('.shop-item').forEach(b => b.onclick = () => {
+    const k = b.dataset.k, kind = b.dataset.kind, o = kind === 'robe' ? OUTFITS[k] : PETS[k];
+    if (!SAVE.unlocked.includes(k)) {
+      if (o.badge) { toast(`🏅 You need the ${o.badge} badge first`); return; }
+      if (SAVE.coins < o.cost) { toast(`🪙 Not enough coins (you need ${o.cost})`); SFX.wrong(); return; }
+      SAVE.coins -= o.cost; SAVE.unlocked.push(k); SFX.gem(); toast(`🎉 Unlocked ${o.name}!`);
+    }
+    if (kind === 'robe') { SAVE.outfit = k; setOutfit(witch, k); }
+    else { scene.remove(petObj.g); setPet(k); scene.add(petObj.g); petObj.g.position.copy(P.pos); }
+    persist(); SFX.click(); wardrobeScreen();
+  });
+}
+
+function myResultsScreen() {
+  const s = summaryObj();
+  const row = n => { const l = SAVE.levels[n], i = LEVEL_INFO[n]; return `<tr><td>Level ${n}<br><small>${i.skill}</small></td><td>${l ? l.best : '-'}</td><td>${l ? starStr(l.stars) : '-'}</td><td>${l ? l.plays : 0}</td></tr>`; };
+  setScreen(`<div class="card blue" style="max-width:680px">
+    <button class="close-x" id="mx">✕</button>
+    <h2>📊 ${esc(SAVE.name ? SAVE.name + '’s' : 'My')} Progress</h2>
+    <div style="overflow:auto"><table class="t"><tr><th>Level</th><th>Best score</th><th>Stars</th><th>Plays</th></tr>${row(1)}${row(2)}${row(3)}</table></div>
+    <div class="meter">
+      <div><div class="lbl">🎤 Spoken sentence accuracy</div><div class="val">${s.speakAcc}%</div><div class="bar"><i style="width:${s.speakAcc}%"></i></div></div>
+      <div><div class="lbl">🗣️ Pronunciation (estimate)</div><div class="val">${s.pronEst != null ? s.pronEst + '/5' : '—'}</div><div class="hint-line">Estimated from the speech recognizer’s confidence</div></div>
+      <div><div class="lbl">👂 Listening (correct on first try)</div><div class="val">${s.listening}%</div><div class="bar"><i style="width:${s.listening}%"></i></div></div>
+      <div><div class="lbl">⌨️ Spelling & writing</div><div class="val">${s.spelling}%</div><div class="bar"><i style="width:${s.spelling}%"></i></div></div>
+      <div><div class="lbl">🧪 Grammar</div><div class="val">${s.grammar}%</div><div class="bar"><i style="width:${s.grammar}%"></i></div></div>
+      <div><div class="lbl">🏅 Badges</div><div style="font-size:14px">${s.badges.join(' • ') || '-'}</div></div>
+    </div>
+    <h3>What to practise next (number of mistakes)</h3>
+    <p style="margin:0">Word order (Rule 1): <b>${s.err.order}</b> • Wh-word (Rule 2): <b>${s.err.wh}</b> • if/whether (Rule 3): <b>${s.err.ifw}</b><br>Capital letters: <b>${s.err.caps}</b> • End mark ? / .: <b>${s.err.punct}</b> • Spelling: <b>${s.err.spell}</b></p>
+    <div class="row" style="margin-top:12px"><button class="btn blue" id="mCopy">📋 Copy My Results (for the teacher)</button><button class="btn ghost" id="mReset">🗑 Clear data on this device</button></div>
+    <p class="hint-line">Progress is saved in this browser${cloudState === 'ok' ? ' and in the game database ☁️' : ''} • Copy your results and send them to your teacher any way you like.</p>
+  </div>`);
+  $('#mx').onclick = titleScreen;
+  $('#mCopy').onclick = () => copyText(resultText());
+  $('#mReset').onclick = () => {
+    const b = $('#mReset'); if (b.dataset.c) { const nm = { name: SAVE.name, cls: SAVE.cls, no: SAVE.no }; SAVE = Object.assign(newSave(), nm); persist(); setOutfit(witch, SAVE.outfit); toast('Data cleared'); titleScreen(); }
+    else { b.dataset.c = 1; b.textContent = '⚠️ Tap again to confirm'; }
+  };
+}
+
+async function teacherScreen() {
+  setScreen(`<div class="card" style="max-width:900px"><button class="close-x" id="tx">✕</button><h2>👩‍🏫 Teacher Dashboard</h2><p id="tBody">Loading...</p></div>`);
+  $('#tx').onclick = titleScreen;
+  const db = await getCap('db');
+  if (!db) { $('#tBody').innerHTML = 'The database is not available in this view.'; return; }
+  try {
+    const snap = await db.collection('scores').limit(500).get();
+    const rows = snap.docs.map(d => d.data()).filter(Boolean).sort((a, b) => (String(a.cls).localeCompare(String(b.cls))) || ((+a.no || 0) - (+b.no || 0)));
+    if (!rows.length) { $('#tBody').innerHTML = 'No results in the database yet. (Students who cannot save online can tap “Copy My Results” and send them to you.)'; return; }
+    const topErr = e => { if (!e) return '-'; const names = { order: 'Word order', wh: 'Wh-word', ifw: 'if/whether', caps: 'Capitals', punct: 'Punctuation', spell: 'Spelling' }; const k = Object.keys(names).sort((a, b) => (e[b] || 0) - (e[a] || 0))[0]; return e[k] ? `${names[k]} (${e[k]})` : '-'; };
+    const lv = (r, n) => r.levels && r.levels[n] ? `${r.levels[n].best} ${'★'.repeat(r.levels[n].stars)}` : '-';
+    $('#tBody').outerHTML = `<div style="overflow:auto"><table class="t"><tr><th>Class</th><th>No.</th><th>Name</th><th>Total</th><th>L1</th><th>L2</th><th>L3</th><th>Speaking %</th><th>Pron.</th><th>Spelling %</th><th>Grammar %</th><th>Needs practice</th></tr>
+      ${rows.map(r => `<tr><td>${esc(r.cls || '')}</td><td>${esc(r.no || '')}</td><td>${esc(r.name || '')}</td><td>${r.total || 0}</td><td>${lv(r, 1)}</td><td>${lv(r, 2)}</td><td>${lv(r, 3)}</td><td>${r.speakAcc || 0}</td><td>${r.pronEst ?? '-'}</td><td>${r.spelling || 0}</td><td>${r.grammar || 0}</td><td>${topErr(r.err)}</td></tr>`).join('')}</table></div>
+      <div class="row" style="margin-top:10px"><button class="btn blue" id="tCsv">📋 Copy as CSV (paste into Excel / Sheets)</button></div>`;
+    $('#tCsv').onclick = () => copyText(['class,no,name,total,L1,L2,L3,speak_acc,pron_est,spelling,grammar,err_order,err_wh,err_ifw,err_caps,err_punct,err_spell']
+      .concat(rows.map(r => [r.cls, r.no, r.name, r.total, r.levels?.[1]?.best ?? '', r.levels?.[2]?.best ?? '', r.levels?.[3]?.best ?? '', r.speakAcc, r.pronEst ?? '', r.spelling, r.grammar, r.err?.order, r.err?.wh, r.err?.ifw, r.err?.caps, r.err?.punct, r.err?.spell].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))).join('\n'));
+  } catch (e) { $('#tBody').innerHTML = 'Could not load data: ' + esc(e.code || e.message || e); }
+}
+
+/* =========================================================
+   QUESTION PANELS (the learning core)
+   ========================================================= */
+let Q = null; // {s, task}
+const SKILL_OF = { speak: 'listen', blank: 'spell', type: 'spell', order: 'spell', mcq: 'gram', fix: 'gram', dialog: 'gram' };
+
+function openQuestion(s) {
+  G.state = 'question'; $('#prompt').classList.add('hidden');
+  Q = { s, task: s.task };
+  $('#qwrap').classList.remove('hidden');
+  renderQuestion();
+  const tk = s.task;
+  if (tk.type === 'speak') playModel();
+  if (tk.type === 'dialog') speak(tk.npc, { pitch: .7, rate: .9 });
+}
+function closeQuestion() {
+  if (!Q) return;
+  stopListening(); try { speechSynthesis.cancel(); } catch (e) { }
+  const s = Q.s, solved = Q.task.solved; Q = null;
+  $('#qwrap').classList.add('hidden'); $('#qpanel').innerHTML = '';
+  G.state = 'play'; P.invuln = Math.max(P.invuln, 1.2);
+  if (solved && !s.solved) stationSolved(s);
+  updateHUD();
+}
+function header(tk) {
+  const s = Q.s, i = LEVEL_INFO[G.level], idx = G.tasks.indexOf(tk) + 1;
+  const typeName = { speak: tk.mode === 'repeat' ? 'Listen & repeat' : 'Listen → say it as an embedded question', blank: tk.mode === 'dictation' ? 'Listen & spell the missing word' : 'Fill in the blank', type: 'Type the full sentence', order: 'Build the sentence', mcq: 'Choose the right word', fix: 'Fix the word order', dialog: 'Role-play conversation' }[tk.type];
+  return `<button class="close-x" id="qClose" title="Leave for now">✕</button>
+    <div class="q-head"><div class="q-npc">${s.icon}</div><div class="q-title"><small>Level ${G.level} • Task ${idx}/${G.tasks.length} • ${typeName}</small><b>${esc(s.name)}</b></div></div>
+    <div class="q-badges"><span class="badge ${G.src === 'ai' && tk.x.src === 'ai' ? 'ai' : ''}">${G.src === 'ai' && tk.x.src === 'ai' ? '🔮 Created by AI' : '📜 Auto-generated'}</span>
+    ${G.streak >= 1 ? `<span class="badge">🔥 ${G.streak} correct in a row</span>` : ''}<span class="badge">Try ${tk.attempts + 1}</span></div>`;
+}
+function renderQuestion() {
+  const tk = Q.task, css = LEVEL_INFO[G.level].css;
+  let body = '';
+  if (tk.type === 'speak') body = speakBody(tk);
+  else if (tk.type === 'blank') body = blankBody(tk);
+  else if (tk.type === 'type') body = typeBody(tk);
+  else if (tk.type === 'order') body = orderBody(tk);
+  else body = choiceBody(tk);
+  $('#qpanel').innerHTML = `<div class="card ${css}">${header(tk)}${body}<div id="qfb"></div><div class="q-actions" id="qact"></div></div>`;
+  $('#qClose').onclick = closeQuestion;
+  bindQuestion(tk);
+}
+
+/* ---------- scoring ---------- */
+function onCorrect(tk) {
+  tk.attempts++; tk.solved = true;
+  G.streak++; G.bestStreak = Math.max(G.bestStreak, G.streak);
+  const mult = G.streak >= 3 ? 3 : G.streak === 2 ? 2 : 1;
+  const base = tk.attempts === 1 ? 100 : tk.attempts === 2 ? 60 : 30;
+  const pts = base * mult, coins = 5 + (mult - 1) * 4;
+  G.score += pts; SAVE.coins += coins;
+  if (tk.attempts === 1) G.firstTry++;
+  const sk = SAVE.stats[SKILL_OF[tk.type]];
+  if (tk.type !== 'speak' || tk.mode === 'transform') { sk.t++; if (tk.attempts === 1) sk.c++; }
+  SFX.correct(); if (mult > 1) { setTimeout(() => { showCombo(mult); SFX.combo(); }, 250); }
+  persist(); updateHUD();
+  return `<div class="hint-line" style="margin-top:6px">+${pts} points${mult > 1 ? ` (Combo x${mult}!)` : ''} • +${coins} 🪙</div>`;
+}
+function onWrong(tk, issues) {
+  tk.attempts++; G.streak = 0; SFX.wrong();
+  (issues || []).forEach(k => { if (SAVE.stats.err[k] != null) SAVE.stats.err[k]++; });
+  persist(); updateHUD();
+}
+function onReveal(tk) {
+  tk.solved = true; tk.revealed = true; G.streak = 0;
+  const sk = SAVE.stats[SKILL_OF[tk.type]]; if (tk.type !== 'speak' || tk.mode === 'transform') sk.t++;
+  persist(); updateHUD();
+}
+function fb(cls, html) { $('#qfb').innerHTML = `<div class="feedback ${cls}">${html}</div>`; }
+function actions(html) { $('#qact').innerHTML = html; }
+function continueBtn(label = 'Continue ➜') { actions(`<button class="btn green" id="qNext">${label}</button>`); $('#qNext').onclick = closeQuestion; $('#qNext').focus(); }
+function issueHtml(issues, extra = '') { return issues.map(k => ISSUE_TEXT[k] || '').filter(Boolean).join('<br>') + extra; }
+
+/* ---------- SPEAK (Level 1) ---------- */
+function playModel(slow) {
+  const tk = Q && Q.task; if (!tk) return;
+  const txt = tk.mode === 'repeat' ? tk.target : tk.x.d;
+  speak(txt, { rate: slow ? .65 : .92, pitch: 1.25 });
+}
+function askAbout(x) {
+  if (x.yn) return 'a <b>yes/no</b> answer';
+  const e = x.e.toLowerCase();
+  if (e.startsWith('what time')) return 'a <b>time</b>';
+  if (e.startsWith('how old')) return 'an <b>age</b>';
+  if (e.startsWith('how many') || e.startsWith('how much')) return 'an <b>amount</b>';
+  return ({ where: 'a <b>place</b>', why: 'a <b>reason</b>', what: 'a <b>thing</b>', when: 'a <b>time</b>', how: 'a <b>way / method</b>', who: 'a <b>person</b>', which: 'a <b>choice</b>', whose: 'an <b>owner</b>' })[x.wh] || 'information';
+}
+function speakBody(tk) {
+  const say = tk.mode === 'repeat'
+    ? `<div class="q-say">👻 “Please help me! Say this sentence with me...”<div class="en">${esc(tk.target)}</div></div>
+       <div class="q-instr">🎧 Listen to the model, then tap 🎤 and say the whole sentence clearly.</div>`
+    : `<div class="q-say">👻 The ghost asks… <span id="dq" class="en" style="filter:blur(7px);transition:filter .3s">${esc(tk.x.d)}</span><div class="th">(Listen first — tap 👀 if you need to see it.)</div></div>
+       <div class="q-instr">🎯 Say this question again as an <b>embedded question</b>, starting with: <b style="color:#fff;font-size:18px">“${esc(tk.frame)} …”</b></div>`;
+  const micOK = !!SRClass && !micBlocked;
+  return `${say}
+    <div class="row btn-row"><button class="btn blue small" id="bPlay">🔊 Model audio</button><button class="btn ghost small" id="bSlow">🐢 Slow</button>${tk.mode === 'transform' ? '<button class="btn ghost small" id="bShow">👀 Show text</button>' : ''}</div>
+    <div class="speak-zone">${micOK ? '<button class="mic-btn" id="bMic" title="Tap and speak">🎤</button>' : ''}<div style="flex:1;min-width:200px"><div class="live" id="live">${micOK ? 'Tap 🎤 and speak in English…' : ''}</div></div></div>
+    ${micOK ? '' : `<div class="feedback info" id="micNote">🎙️ ${SRClass ? 'The microphone is blocked on this page' : 'This browser does not support speech recognition yet'} — <b>say the sentence out loud</b> and use your <b>keyboard’s microphone button</b> (phone / iPad), <kbd>Win</kbd>+<kbd>H</kbd> (Windows) or press <kbd>fn</kbd> twice (Mac) to turn your voice into text in the box below. For direct microphone checking, open the game from its GitHub Pages link in Chrome, Edge or Safari.</div>`}
+    <div class="row input-row" style="margin-top:6px"><input class="type-input" id="spTxt" placeholder="${micOK ? 'Or type / dictate here' : 'Speak (dictate) or type your sentence here'}" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="btn small" id="bSpCheck">Check ✓</button></div>`;
+}
+function bindSpeak(tk) {
+  $('#bPlay').onclick = () => playModel(false);
+  $('#bSlow').onclick = () => playModel(true);
+  if ($('#bShow')) $('#bShow').onclick = () => { $('#dq').style.filter = 'none'; };
+  const mic = $('#bMic');
+  if (mic) mic.onclick = async () => {
+    if (mic.classList.contains('rec')) { stopListening(); return; }
+    try { speechSynthesis.cancel(); } catch (e) { }
+    mic.classList.add('rec'); $('#live').textContent = '🎙️ Listening… speak now';
+    try {
+      const r = await listenOnce(txt => { $('#live').textContent = '“' + txt + '”'; });
+      mic.classList.remove('rec');
+      if (!r) { $('#live').textContent = 'I didn’t hear anything. Tap 🎤 and try again.'; return; }
+      $('#live').textContent = '“' + r.text + '”';
+      evaluateSpeech(tk, r.text, r.conf, r.alts, 'mic');
+    } catch (err) {
+      mic.classList.remove('rec');
+      if (err === 'not-allowed' || err === 'service-not-allowed' || err === 'audio-capture' || err === 'start-failed') {
+        micBlocked = true;
+        $('#live').innerHTML = '';
+        mic.remove();
+        $('#qfb').innerHTML = `<div class="feedback info">🎙️ The microphone can’t be used on this page (${esc(err)}) — say the sentence out loud and use your <b>keyboard’s microphone button</b> / <kbd>Win</kbd>+<kbd>H</kbd> to turn it into text in the box below, then tap “Check”.</div>`;
+      } else if (err === 'network') { $('#live').textContent = 'Speech recognition needs an internet connection. Try again or type instead.'; }
+      else $('#live').textContent = 'Something went wrong (' + err + '). Please try again.';
+    }
+  };
+  const go = () => { const v = $('#spTxt').value.trim(); if (!v) return; evaluateSpeech(tk, v, null, null, 'text'); };
+  $('#bSpCheck').onclick = go; $('#spTxt').onkeydown = e => { if (e.key === 'Enter') go(); };
+}
+function evaluateSpeech(tk, said, conf, alts, source) {
+  if (tk.solved) return;
+  // choose the recognition alternative closest to the target (the recognizer is unsure between them)
+  let best = { text: said, conf };
+  if (alts && alts.length > 1) { let ba = -1; alts.forEach(a => { const acc = alignWords(tk.target, a.text).acc; if (acc > ba) { ba = acc; best = { text: a.text, conf: (a.conf || conf) }; } }); }
+  const al = alignWords(tk.target, best.text);
+  const dg = diagnose(best.text, tk.x, tk.target);
+  const structural = dg.issues.filter(k => k === 'order' || k === 'ifw' || k === 'wh');
+  const pass = al.acc >= 80 && structural.length === 0;
+  const pron = source === 'mic' && best.conf ? clamp(Math.round(best.conf * 5), 1, 5) : null;
+  const st = SAVE.stats.speak; st.n++; st.accSum += al.acc; if (pron) { st.pronSum += pron; st.pronN++; } if (pass) st.pass++;
+  const chips = `<div class="words">${al.out.map(o => `<span class="w ${o.k}">${esc(o.w)}</span>`).join('')}</div><div class="hint-line">🟩 correct • 🟥 missing / unclear • 🟨 extra word</div>`;
+  const meter = `<div class="meter">
+     <div><div class="lbl">📝 Sentence accuracy</div><div class="val">${al.acc}%</div><div class="bar"><i style="width:${al.acc}%"></i></div><div class="hint-line">${structural.length ? '⚠️ Word order / structure is not right yet' : '✔ Embedded question structure is correct'}</div></div>
+     <div><div class="lbl">🗣️ Pronunciation (estimate)</div><div class="val">${pron ? '★'.repeat(pron) + '☆'.repeat(5 - pron) : '—'}</div><div class="hint-line">${pron ? 'Estimated from the speech recognizer’s confidence — not an exact pronunciation score' : 'No audio data (checked from text) — keep practising with the model audio'}</div></div></div>`;
+  const tips = (source === 'mic' ? al.missed : []).map(w => PRON_TIPS[w.toLowerCase()]).filter(Boolean);
+  const tipHtml = tips.length ? `<div style="margin-top:6px">🔈 <b>Words the system didn’t catch — maybe unclear:</b><br>${[...new Set(tips)].slice(0, 3).map(t => '• ' + esc(t)).join('<br>')}</div>` : (source === 'mic' && al.missed.length ? `<div style="margin-top:6px">🔈 Practise saying <b>${al.missed.slice(0, 4).map(esc).join(', ')}</b> more clearly, then try again.</div>` : '');
+  if (pass) {
+    if (tk.mode === 'transform' && tk.attempts === 0) { /* listening success counted in onCorrect */ }
+    const pts = onCorrect(tk);
+    fb('good', `🎉 <b>${pick(['Excellent!', 'Great speaking!', 'Perfect!', 'Well done!'])}</b> The ghost understands you!${chips}${meter}${tipHtml}${pts}<div style="margin-top:6px">${ruleFor(tk.x)}</div>`);
+    continueBtn('Free the ghost ✨');
+  } else {
+    onWrong(tk, structural.length ? structural : (al.acc < 80 ? ['other'] : []));
+    const msg = structural.length ? issueHtml(structural) : '👻 Some words are missing. Listen to the model again and speak more clearly (you need 80% or more).';
+    const reveal = tk.attempts >= 2 ? `<div style="margin-top:8px">💡 <b>Model sentence:</b> <span style="font-size:18px">${esc(tk.target)}</span> <button class="btn blue small" id="bHear">🔊 Listen</button></div>` : '';
+    fb('bad', `${msg}${chips}${meter}${tipHtml}${reveal}`);
+    if ($('#bHear')) $('#bHear').onclick = () => speak(tk.target, { rate: .8, pitch: 1.2 });
+    actions(tk.attempts >= 3 ? `<button class="btn ghost small" id="bSkip">Skip for now (0 points)</button>` : '');
+    if ($('#bSkip')) $('#bSkip').onclick = () => { onReveal(tk); closeQuestion(); };
+  }
+}
+
+/* ---------- BLANK (Level 2) ---------- */
+function blankBody(tk) {
+  const f = tk.full, i = f.toLowerCase().indexOf(tk.answer.toLowerCase(), tk.frame.length);
+  const before = f.slice(0, i), after = f.slice(i + tk.answer.length);
+  const len = tk.answer.length;
+  const instr = tk.mode === 'dictation'
+    ? `🎧 Listen to the sentence, then <b>type the missing word</b> with the correct spelling (${len} letters).`
+    : `✍️ Type the missing word. Hint: the hidden question asks for ${askAbout(tk.x)}.`;
+  return `<div class="q-say">👻 “Spell it right and the lock will open!”</div>
+    <div class="q-instr">${instr}</div>
+    <div class="big-sentence">${esc(before)}<input class="blank-input" id="bIn" maxlength="20" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${'_ '.repeat(len).trim()}">${esc(after)}</div>
+    <div class="row btn-row"><button class="btn blue small" id="bHearS">🔊 Hear sentence</button>${tk.mode === 'dictation' ? '<button class="btn ghost small" id="bHearW">🔊 Hear the word</button>' : ''}<button class="btn small" id="bChk">Check ✓</button></div>
+    <p class="hint-line" id="bHint"></p>`;
+}
+function bindBlank(tk) {
+  $('#bHearS').onclick = () => speak(tk.full, { rate: .85 });
+  if ($('#bHearW')) $('#bHearW').onclick = () => speak(tk.answer, { rate: .7 });
+  const inp = $('#bIn'); if (!isTouch) setTimeout(() => inp.focus(), 80);
+  const go = () => {
+    if (tk.solved) return;
+    const v = inp.value.trim().toLowerCase(); if (!v) return;
+    if (tk.accept.includes(v)) {
+      inp.style.borderColor = '#3fd27a'; inp.disabled = true;
+      const pts = onCorrect(tk);
+      fb('good', `🎉 Correct! <b>${esc(tk.full)}</b>${pts}<div style="margin-top:6px">${tk.mode === 'word' ? ruleFor(tk.x) : `📝 Spelling: <b>${tk.answer.split('').join('-')}</b>`}</div>`);
+      speak(tk.full, { rate: .9 }); continueBtn('Unlock 🔓');
+    } else {
+      const d = Math.min(...tk.accept.map(a => lev(v, a)));
+      const near = d <= 2 && v.length > 2;
+      const issues = near ? ['spell'] : (tk.mode === 'word' ? [tk.x.yn ? 'ifw' : 'wh'] : ['spell']);
+      onWrong(tk, issues);
+      inp.style.borderColor = '#ff4d6d';
+      let hint = near ? `👻 So close! ${d} letter${d > 1 ? 's are' : ' is'} wrong. Check the spelling again.` : issueHtml(issues);
+      if (tk.attempts >= 1) $('#bHint').innerHTML = `💡 Hint: it starts with “<b>${tk.answer[0]}</b>” and has ${tk.answer.length} letters.`;
+      if (tk.attempts >= 3) hint += `<br>📖 Answer: <b>${esc(tk.answer)}</b> — type it to continue.`;
+      fb('bad', hint);
+    }
+  };
+  $('#bChk').onclick = go; inp.onkeydown = e => { if (e.key === 'Enter') go(); };
+}
+
+/* ---------- TYPE SENTENCE (Level 2) ---------- */
+function typeBody(tk) {
+  return `<div class="q-say">👻 “Write the magic words <i>exactly</i> right — capital letters and punctuation too!”</div>
+    <div class="q-instr">✍️ Change this question into an embedded question and <b>type the whole sentence</b> (capital letter + correct end mark).</div>
+    <div class="big-sentence" style="font-size:19px">❓ ${esc(tk.x.d)}<br>➜ Start with: <span style="color:#ffc83d">${esc(tk.frame)} …</span></div>
+    <input class="type-input" id="tIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Type the full sentence here">
+    <div class="row btn-row" style="margin-top:8px"><button class="btn small" id="tChk">Check ✓</button></div>`;
+}
+function bindType(tk) {
+  const inp = $('#tIn'); if (!isTouch) setTimeout(() => inp.focus(), 80);
+  const go = () => {
+    if (tk.solved) return;
+    const v = inp.value.trim().replace(/\s+/g, ' ').replace(/[’‘]/g, "'"); if (!v) return;
+    const contentOK = canon(v) === canon(tk.target);
+    if (contentOK) {
+      const capsOK = /^[A-Z]/.test(v) && !/\bi\b/.test(v.replace(/^I\b/, ''));
+      const endOK = v.slice(-1) === tk.target.slice(-1);
+      if (capsOK && endOK) {
+        const pts = onCorrect(tk); inp.disabled = true; inp.style.borderColor = '#3fd27a';
+        fb('good', `🎉 Perfect! <b>${esc(v)}</b>${pts}<div style="margin-top:6px">${ruleFor(tk.x)}<br>✒️ ${punctRule(tk.frame)}</div>`);
+        continueBtn('Unlock 🔓');
+      } else {
+        const iss = []; if (!capsOK) iss.push('caps'); if (!endOK) iss.push('punct');
+        onWrong(tk, iss);
+        fb('bad', `✅ Your word order and spelling are correct! But you still need to fix:<br>${issueHtml(iss)}${!endOK ? `<br>👉 ${punctRule(tk.frame)}` : ''}`);
+      }
+    } else {
+      const dg = diagnose(v, tk.x, tk.target); onWrong(tk, dg.issues);
+      let extra = '';
+      if (dg.spell && dg.spell.length) extra += `<br>🔤 Check: ${dg.spell.map(([a]) => `<b>“${esc(a)}”</b>`).join(', ')}`;
+      if (tk.attempts >= 3) extra += `<br>📖 Answer: <b>${esc(tk.target)}</b> — type it to continue.`;
+      else if (tk.attempts >= 2) extra += `<br>💡 Hint: ${esc(tk.frame)} <b>${esc(embed(tk.x, 'if').split(' ').slice(0, 2).join(' '))}</b> …`;
+      fb('bad', issueHtml(dg.issues, extra));
+    }
+  };
+  $('#tChk').onclick = go; inp.onkeydown = e => { if (e.key === 'Enter') go(); };
+}
+
+/* ---------- ORDER WORDS (Level 2) ---------- */
+function orderBody(tk) {
+  return `<div class="q-say">👻 “The magic words are all mixed up! Put them in order.”</div>
+    <div class="q-instr">🧩 Tap the words to build a correct embedded question sentence. The hidden question asks for ${askAbout(tk.x)}.</div>
+    <div class="tiles answer" id="oAns"></div>
+    <div class="tiles" id="oPool">${tk.shuffled.map((w, i) => `<button class="tile" data-i="${i}">${esc(w)}</button>`).join('')}</div>
+    <div class="row btn-row"><button class="btn ghost small" id="oReset">↺ Reset</button><button class="btn small" id="oChk">Check ✓</button></div>`;
+}
+function bindOrder(tk) {
+  const ans = [];
+  const draw = () => {
+    $('#oAns').innerHTML = ans.map((i, k) => `<button class="tile ans" data-k="${k}">${esc(tk.shuffled[i])}</button>`).join('');
+    document.querySelectorAll('#oPool .tile').forEach(b => b.classList.toggle('used', ans.includes(+b.dataset.i)));
+    document.querySelectorAll('#oAns .tile').forEach(b => b.onclick = () => { if (tk.solved) return; ans.splice(+b.dataset.k, 1); SFX.click(); draw(); });
+  };
+  document.querySelectorAll('#oPool .tile').forEach(b => b.onclick = () => { if (tk.solved) return; const i = +b.dataset.i; if (!ans.includes(i)) { ans.push(i); SFX.click(); draw(); } });
+  $('#oReset').onclick = () => { if (tk.solved) return; ans.length = 0; draw(); };
+  $('#oChk').onclick = () => {
+    if (tk.solved) return;
+    if (ans.length < tk.toks.length) { fb('info', '🧩 Use all the words first.'); return; }
+    const built = ans.map(i => tk.shuffled[i]).join(' ').replace(/ ([?.])$/, '$1');
+    if (built === tk.target) {
+      const pts = onCorrect(tk); fb('good', `🎉 Correct! <b>${esc(tk.target)}</b>${pts}<div style="margin-top:6px">${ruleFor(tk.x)}</div>`); speak(tk.target, { rate: .9 }); continueBtn('Unlock 🔓');
+    } else {
+      const dg = diagnose(built, tk.x, tk.target);
+      let iss = dg.issues.filter(k => k !== 'spell');
+      if (canon(built) === canon(tk.target)) iss = ['punct'];
+      if (!iss.length) iss = ['other'];
+      onWrong(tk, iss);
+      let extra = '';
+      if (tk.attempts >= 2) extra = `<br>💡 Hint: start with “<b>${esc(tk.toks.slice(0, tk.frame.split(' ').length + 1).join(' '))}</b> …”`;
+      if (tk.attempts >= 3) extra = `<br>📖 Answer: <b>${esc(tk.target)}</b> — build it to continue.`;
+      fb('bad', issueHtml(iss, extra));
+    }
+  };
+  draw();
+}
+
+/* ---------- CHOICE (Level 3: mcq, fix, dialog) ---------- */
+function choiceBody(tk) {
+  let top = '';
+  if (tk.type === 'mcq') top = `<div class="q-say">🧪 “Choose the right word to add this ingredient to the potion!”</div>
+    <div class="q-instr">🔮 Choose the correct word. Hint: the hidden question asks for ${askAbout(tk.x)}.</div>
+    <div class="big-sentence">${esc(tk.blanked).replace('____', '<span style="color:#ffc83d">_____</span>')}</div>`;
+  else if (tk.type === 'fix') top = `<div class="q-say">🧪 “This spell is broken! Which sentence fixes it?”</div>
+    <div class="big-sentence" style="color:#ff9aab">✘ ${esc(tk.wrong)}</div>
+    <div class="q-instr">🛠️ The sentence above has the wrong word order. Which option fixes it best? (Original question: “${esc(tk.x.d)}”)</div>`;
+  else top = `<div class="q-say">${Q.s.kind === 'mirror' ? '🪞' : '🧙‍♀️'} <span class="en">“${esc(tk.npc)}”</span> <button class="btn ghost small" id="cHear" style="padding:4px 10px">🔊</button></div>
+    <div class="q-instr">💬 You want to ask: <b>“${esc(tk.x.d)}”</b> — choose the sentence that is <b>polite and grammatically correct</b>.</div>`;
+  return `${top}<div class="opts">${tk.opts.map((o, i) => `<button class="opt" data-i="${i}">${String.fromCharCode(65 + i)}. ${esc(o)}</button>`).join('')}</div>`;
+}
+function bindChoice(tk) {
+  if ($('#cHear')) $('#cHear').onclick = () => speak(tk.npc, { pitch: .7, rate: .9 });
+  document.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    if (tk.solved) return;
+    const o = tk.opts[+b.dataset.i];
+    if (o === tk.answer) {
+      b.classList.add('right'); document.querySelectorAll('.opt').forEach(x => x.disabled = true);
+      const pts = onCorrect(tk);
+      let more = '';
+      if (tk.type === 'mcq') more = `<b>${esc(tk.full)}</b>`;
+      if (tk.type === 'dialog') { more = `${Q.s.kind === 'mirror' ? '🪞' : '🧙‍♀️'} “${esc(tk.reply)}”`; speak(tk.reply, { pitch: .7, rate: .9 }); }
+      else speak(tk.type === 'mcq' ? tk.full : tk.answer, { rate: .9 });
+      fb('good', `🎉 Correct! ${more}${pts}<div style="margin-top:6px">${ruleFor(tk.x)}${tk.type === 'fix' ? '<br>✒️ ' + punctRule(tk.frame) : ''}</div>`);
+      continueBtn(tk.type === 'dialog' ? 'Thank you! ➜' : 'Add the ingredient 🧪');
+    } else {
+      b.classList.add('wrong'); b.disabled = true;
+      let iss;
+      if (tk.type === 'mcq') iss = [tk.x.yn ? 'ifw' : 'wh'];
+      else if (o.slice(-1) !== tk.answer.slice(-1) && canon(o) === canon(tk.answer)) iss = ['punct'];
+      else if (canon(o).includes(canon(tk.x.dl)) || /^tell me/i.test(o)) iss = ['order'];
+      else iss = [tk.x.yn ? 'ifw' : 'wh'];
+      onWrong(tk, iss);
+      let extra = '';
+      if (iss[0] === 'punct') extra = `<br>👉 ${punctRule(tk.frame)}`;
+      if (/ that /.test(o) && tk.type === 'mcq') extra = '<br>👉 “that” introduces a fact, not a question — use a Wh-word or if / whether.';
+      if (/^tell me/i.test(o)) extra += '<br>👉 “Tell me …!” is a command — it isn’t polite, and the word order is wrong.';
+      fb('bad', issueHtml(iss, extra));
+    }
+  });
+}
+
+function bindQuestion(tk) {
+  if (tk.type === 'speak') bindSpeak(tk);
+  else if (tk.type === 'blank') bindBlank(tk);
+  else if (tk.type === 'type') bindType(tk);
+  else if (tk.type === 'order') bindOrder(tk);
+  else bindChoice(tk);
+  if (tk.solved) continueBtn();
+}
+
+/* =========================================================
+   BOOT
+   ========================================================= */
+function boot() {
+  if (!window.THREE) { document.body.innerHTML = '<div style="padding:30px;color:#fff;font-family:sans-serif">Could not load the 3D engine. Please check your internet connection and refresh.</div>'; return; }
+  initThree(); createPlayer(); setupPointer();
+  $('#btnRules').onclick = () => { if (G.state === 'play') rulesScreen(); };
+  $('#btnPause').onclick = () => { if (G.state === 'play') pauseMenu(); };
+  $('#btnSound').onclick = () => { muted = !muted; $('#btnSound').textContent = muted ? '🔇' : '🔊'; if (muted) try { speechSynthesis.cancel(); } catch (e) { } };
+  document.addEventListener('pointerdown', () => ac(), { once: true });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && G.state === 'play') pauseMenu(); });
+  buildLevel(1);
+  titleScreen();
+  loop();
+}
+boot();
+
+</script>
+</body>
+</html>
